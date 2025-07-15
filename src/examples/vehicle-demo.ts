@@ -22,7 +22,7 @@ export class VehicleDemo {
     // Initialize vehicle at center of canvas
     this.vehicle = new Vehicle({
       x: canvas.width / 2,
-      y: canvas.height / 2
+      y: canvas.height / 2,
     });
 
     // Create controller with default arrow keys
@@ -72,8 +72,16 @@ export class VehicleDemo {
     this.context.fillStyle = '#ffffff';
     this.context.font = '16px monospace';
     this.context.fillText(`Speed: ${Math.round(this.vehicle.speed)}`, 10, 30);
-    this.context.fillText(`Rotation: ${Math.round(this.vehicle.rotation * 180 / Math.PI)}°`, 10, 50);
-    this.context.fillText('Use arrow keys to control', 10, this.canvas.height - 20);
+    this.context.fillText(
+      `Rotation: ${Math.round((this.vehicle.rotation * 180) / Math.PI)}°`,
+      10,
+      50
+    );
+    this.context.fillText(
+      'Use arrow keys to control',
+      10,
+      this.canvas.height - 20
+    );
   }
 
   destroy(): void {

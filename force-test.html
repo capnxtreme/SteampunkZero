@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Test</title>
+</head>
+<body>
+    <h1>Testing TrackTexture directly</h1>
+    <canvas id="test" width="1024" height="1024" style="width: 512px; height: 512px; border: 2px solid red;"></canvas>
+    
+    <script type="module">
+        // Bypass everything and test directly
+        import { TrackTexture } from './src/tracks/TrackTexture.js';
+        
+        const track = new TrackTexture(1024, 1024);
+        track.generateOvalTrack();
+        
+        const canvas = document.getElementById('test');
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(track.getCanvas(), 0, 0);
+        
+        console.log('Track drawn directly');
+    </script>
+</body>
+</html>

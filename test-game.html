@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #222;
+            color: #fff;
+            font-family: monospace;
+        }
+        #log {
+            background: #333;
+            padding: 10px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .error { color: #ff6666; }
+        .warn { color: #ffcc66; }
+        .info { color: #66ccff; }
+    </style>
+</head>
+<body>
+    <h1>Game Test with Console Output</h1>
+    <iframe id="gameFrame" src="http://localhost:3003/" width="850" height="650" style="border: 2px solid #666;"></iframe>
+    
+    <div id="log">Console output will appear here...</div>
+    
+    <script>
+        const log = document.getElementById('log');
+        const iframe = document.getElementById('gameFrame');
+        
+        // Capture messages from iframe
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'console') {
+                const entry = document.createElement('div');
+                entry.className = event.data.level;
+                entry.textContent = `[${event.data.level}] ${event.data.message}`;
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+            }
+        });
+        
+        // Also capture our own console
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+        
+        function logToDiv(level, args) {
+            const entry = document.createElement('div');
+            entry.className = level;
+            entry.textContent = `[${level}] ${Array.from(args).join(' ')}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        console.log = function() {
+            originalConsole.log.apply(console, arguments);
+            logToDiv('log', arguments);
+        };
+        
+        console.error = function() {
+            originalConsole.error.apply(console, arguments);
+            logToDiv('error', arguments);
+        };
+        
+        console.warn = function() {
+            originalConsole.warn.apply(console, arguments);
+            logToDiv('warn', arguments);
+        };
+        
+        console.info = function() {
+            originalConsole.info.apply(console, arguments);
+            logToDiv('info', arguments);
+        };
+    </script>
+</body>
+</html>

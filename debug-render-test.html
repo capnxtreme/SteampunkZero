@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Render</title>
+    <style>
+        body { margin: 20px; background: #222; color: #fff; font-family: monospace; }
+        canvas { border: 2px solid #666; display: block; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Debug: What's Actually Being Rendered</h1>
+    
+    <h2>1. Track Texture (1024x1024)</h2>
+    <canvas id="trackCanvas" width="512" height="512"></canvas>
+    
+    <h2>2. Mode7 Output (800x600)</h2>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div id="info"></div>
+
+    <script type="module">
+        import { TrackTexture } from './src/tracks/TrackTexture.js';
+        import { Mode7Renderer3D } from './src/rendering/Mode7Renderer3D.js';
+        
+        // Create track
+        const track = new TrackTexture(1024, 1024);
+        track.generateOvalTrack();
+        
+        // Show track texture
+        const trackCanvas = document.getElementById('trackCanvas');
+        const trackCtx = trackCanvas.getContext('2d');
+        trackCtx.drawImage(track.getCanvas(), 0, 0, 512, 512);
+        
+        // Create Mode7 renderer
+        const gameCanvas = document.getElementById('gameCanvas');
+        const renderer = new Mode7Renderer3D(gameCanvas);
+        
+        // Set camera to match game
+        renderer.setCameraPosition(0, -50);
+        renderer.setCameraAngle(0);
+        renderer.setCameraHeight(40);
+        
+        // Render
+        renderer.renderHorizon();
+        renderer.renderMode7With3D(track.getCanvas(), track.getHeightMap());
+        
+        // Debug info
+        const info = document.getElementById('info');
+        info.innerHTML = `
+            <h3>Debug Info:</h3>
+            <p>Track texture size: 1024x1024</p>
+            <p>Camera: pos(0, -50), height: 40</p>
+            <p>World to texture scale: 2.0</p>
+            <p>FOV: 120°</p>
+        `;
+    </script>
+</body>
+</html>

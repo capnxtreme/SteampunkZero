@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Loading Issue</title>
+    <style>
+        body { margin: 20px; background: #111; color: #fff; font-family: monospace; }
+        #log { background: #222; padding: 10px; margin: 10px 0; height: 400px; overflow-y: scroll; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .info { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>Debug: Page Loading Issue</h1>
+    <div id="log"></div>
+    
+    <script type="module">
+        const log = document.getElementById('log');
+        
+        function addLog(msg, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            log.appendChild(entry);
+            console.log(msg);
+        }
+        
+        window.addEventListener('error', (e) => {
+            addLog(`ERROR: ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`, 'error');
+        });
+        
+        try {
+            addLog('Starting debug...');
+            
+            // Test 1: Can we import TrackTexture?
+            addLog('Testing TrackTexture import...');
+            const { TrackTexture } = await import('./src/tracks/TrackTexture.js');
+            addLog('✓ TrackTexture imported', 'success');
+            
+            // Test 2: Can we create a track?
+            addLog('Creating 4096x4096 track texture...');
+            const startTime = Date.now();
+            const track = new TrackTexture(4096, 4096);
+            const createTime = Date.now() - startTime;
+            addLog(`✓ Track created in ${createTime}ms`, 'success');
+            
+            // Test 3: Can we generate a track?
+            addLog('Generating oval track...');
+            const genStart = Date.now();
+            track.generateOvalTrack();
+            const genTime = Date.now() - genStart;
+            addLog(`✓ Track generated in ${genTime}ms`, 'success');
+            
+            // Test 4: Check canvas size
+            const canvas = track.getCanvas();
+            addLog(`Canvas size: ${canvas.width}x${canvas.height}`);
+            
+            // Test 5: Check height map
+            const heightMap = track.getHeightMap();
+            let wallCount = 0;
+            for (let i = 0; i < heightMap.length; i++) {
+                if (heightMap[i] > 0) wallCount++;
+            }
+            addLog(`Height map has ${wallCount} wall pixels`);
+            
+            // Test 6: Can we import SteampunkRacer?
+            addLog('Testing SteampunkRacer import...');
+            const { SteampunkRacer } = await import('./src/SteampunkRacer.js');
+            addLog('✓ SteampunkRacer imported', 'success');
+            
+            // Test 7: Create game instance
+            addLog('Creating game instance...');
+            const gameCanvas = document.createElement('canvas');
+            gameCanvas.width = 800;
+            gameCanvas.height = 600;
+            const game = new SteampunkRacer(gameCanvas);
+            addLog('✓ Game instance created', 'success');
+            
+            // Test 8: Check what happens on start
+            addLog('Testing game.start() with mocked assets...');
+            
+            // Mock the async methods to avoid actual loading
+            game['assetLoader'].loadInitialAssets = () => {
+                addLog('Mock: loadInitialAssets called');
+                return Promise.resolve();
+            };
+            game['audioManager'].initialize = () => {
+                addLog('Mock: audioManager.initialize called');
+                return Promise.resolve();
+            };
+            game['audioManager'].playBackgroundMusic = () => {
+                addLog('Mock: playBackgroundMusic called');
+            };
+            
+            await game.start();
+            addLog('✓ Game started successfully', 'success');
+            
+            // The issue might be with asset loading
+            addLog('\nLIKELY ISSUE: The game is hanging on asset loading!', 'error');
+            addLog('The AssetLoader.loadInitialAssets() might be failing or taking forever', 'error');
+            
+        } catch (err) {
+            addLog(`CAUGHT ERROR: ${err.message}`, 'error');
+            addLog(`Stack: ${err.stack}`, 'error');
+        }
+    </script>
+</body>
+</html>

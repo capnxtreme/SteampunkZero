@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visual Scaling Test</title>
+    <style>
+        body { margin: 20px; background: #111; color: #fff; font-family: monospace; }
+        canvas { border: 2px solid #f00; display: block; margin: 10px; }
+        #comparison { display: flex; gap: 20px; }
+        .test-section { border: 1px solid #333; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Testing 128x Track Scaling</h1>
+    
+    <div class="test-section">
+        <h2>Scale Verification</h2>
+        <div id="scale-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Game View</h2>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="game-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Track Coverage Test</h2>
+        <canvas id="coverageCanvas" width="400" height="400"></canvas>
+        <div id="coverage-info"></div>
+    </div>
+
+    <script type="module">
+        const scaleInfo = document.getElementById('scale-info');
+        const gameInfo = document.getElementById('game-info');
+        const coverageInfo = document.getElementById('coverage-info');
+        
+        // Calculate and display scale info
+        const worldToTextureScale = 0.354;
+        const textureSize = 4096;
+        const worldCoverage = textureSize / worldToTextureScale;
+        const originalCoverage = 1024;
+        const scaleFactor = worldCoverage / originalCoverage;
+        
+        scaleInfo.innerHTML = `
+            <p>World-to-texture scale: ${worldToTextureScale}</p>
+            <p>Texture size: ${textureSize} × ${textureSize}</p>
+            <p>World coverage: ${worldCoverage.toFixed(0)} × ${worldCoverage.toFixed(0)} units</p>
+            <p>Original coverage: ${originalCoverage} × ${originalCoverage} units</p>
+            <p>Linear scale factor: ${scaleFactor.toFixed(1)}×</p>
+            <p>Area scale factor: ${(scaleFactor * scaleFactor).toFixed(0)}× ✓</p>
+        `;
+        
+        try {
+            // Import and create game
+            const { SteampunkRacer } = await import('./src/SteampunkRacer.js');
+            const canvas = document.getElementById('gameCanvas');
+            const game = new SteampunkRacer(canvas);
+            
+            // Mock async methods
+            game['assetLoader'].loadInitialAssets = () => Promise.resolve();
+            game['audioManager'].initialize = () => Promise.resolve();
+            game['audioManager'].playBackgroundMusic = () => {};
+            game['audioManager'].playEngineSound = () => {};
+            
+            // Start game
+            await game.start();
+            
+            // Get track and renderer info
+            const track = game['trackTexture'];
+            const renderer = game['mode7Renderer'];
+            const camera = renderer.getCamera();
+            const vehicle = game['vehicle'];
+            
+            gameInfo.innerHTML = `
+                <p>✓ Game running</p>
+                <p>Camera height: ${camera.height}</p>
+                <p>Camera position: (${camera.x.toFixed(0)}, ${camera.y.toFixed(0)})</p>
+                <p>Vehicle position: (${vehicle.position.x.toFixed(0)}, ${vehicle.position.y.toFixed(0)})</p>
+            `;
+            
+            // Show track coverage visualization
+            const coverageCanvas = document.getElementById('coverageCanvas');
+            const ctx = coverageCanvas.getContext('2d');
+            
+            // Draw track texture scaled down
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, 400, 400);
+            
+            // Draw the track
+            ctx.save();
+            ctx.scale(400/textureSize, 400/textureSize);
+            ctx.drawImage(track.getCanvas(), 0, 0);
+            ctx.restore();
+            
+            // Draw visible area indicator
+            const visibleRadius = 400; // Approximate visible distance in world units
+            const visibleRadiusPixels = visibleRadius * worldToTextureScale;
+            const centerX = 200;
+            const centerY = 200;
+            
+            ctx.strokeStyle = '#0f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, visibleRadiusPixels * (400/textureSize), 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = '12px monospace';
+            ctx.fillText('Visible area', centerX - 30, centerY);
+            
+            coverageInfo.innerHTML = `
+                <p>Green circle shows approximate visible area</p>
+                <p>Visible radius: ~${visibleRadius} world units</p>
+                <p>As percentage of track: ${(visibleRadius / worldCoverage * 100).toFixed(1)}%</p>
+                <p>Track should appear MUCH larger than before ✓</p>
+            `;
+            
+            // Add keyboard info
+            const keyInfo = document.createElement('div');
+            keyInfo.className = 'test-section';
+            keyInfo.innerHTML = `
+                <h3>Controls</h3>
+                <p>Arrow keys - Drive around</p>
+                <p>D - Debug mode (shows coordinates)</p>
+                <p>T - Switch track type</p>
+                <p>The track should feel MASSIVE compared to before!</p>
+            `;
+            document.body.appendChild(keyInfo);
+            
+        } catch (err) {
+            gameInfo.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
+            console.error(err);
+        }
+    </script>
+</body>
+</html>

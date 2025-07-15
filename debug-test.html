@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+    <style>
+        body { margin: 20px; font-family: monospace; background: #222; color: #fff; }
+        canvas { border: 2px solid #666; display: block; margin: 20px 0; }
+        button { margin: 5px; padding: 10px; }
+        #status { background: #333; padding: 10px; margin: 10px 0; }
+        .error { color: #ff6666; }
+        .success { color: #66ff66; }
+    </style>
+</head>
+<body>
+    <h1>SteampunkZero Debug Test</h1>
+    <div id="status">Status: Initializing...</div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div>
+        <button id="startBtn">Start Game</button>
+        <button id="stopBtn">Stop Game</button>
+        <button id="testRenderBtn">Test Render</button>
+    </div>
+    <pre id="log"></pre>
+
+    <script type="module">
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        
+        function addLog(msg, isError = false) {
+            const time = new Date().toLocaleTimeString();
+            log.textContent += `[${time}] ${isError ? 'ERROR: ' : ''}${msg}\n`;
+            if (isError) console.error(msg);
+            else console.log(msg);
+        }
+
+        try {
+            // Import the game
+            addLog('Importing SteampunkRacer...');
+            const { SteampunkRacer } = await import('./src/SteampunkRacer.js');
+            addLog('Import successful');
+            
+            // Get canvas
+            const canvas = document.getElementById('gameCanvas');
+            addLog('Canvas found: ' + (canvas ? 'Yes' : 'No'));
+            
+            // Create game instance
+            addLog('Creating game instance...');
+            const game = new SteampunkRacer(canvas);
+            addLog('Game instance created');
+            status.textContent = 'Status: Game created successfully';
+            status.className = 'success';
+            
+            // Wire up buttons
+            document.getElementById('startBtn').onclick = async () => {
+                try {
+                    addLog('Starting game...');
+                    await game.start();
+                    addLog('Game started successfully');
+                    status.textContent = 'Status: Game running';
+                } catch (err) {
+                    addLog('Failed to start game: ' + err.message, true);
+                    status.textContent = 'Status: Start failed - ' + err.message;
+                    status.className = 'error';
+                }
+            };
+            
+            document.getElementById('stopBtn').onclick = () => {
+                try {
+                    addLog('Stopping game...');
+                    game.stop();
+                    addLog('Game stopped');
+                    status.textContent = 'Status: Game stopped';
+                } catch (err) {
+                    addLog('Failed to stop game: ' + err.message, true);
+                }
+            };
+            
+            document.getElementById('testRenderBtn').onclick = () => {
+                try {
+                    addLog('Testing basic render...');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Clear and draw test pattern
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw grid
+                    ctx.strokeStyle = '#0f0';
+                    ctx.lineWidth = 1;
+                    for (let x = 0; x < canvas.width; x += 50) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, canvas.height);
+                        ctx.stroke();
+                    }
+                    for (let y = 0; y < canvas.height; y += 50) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(canvas.width, y);
+                        ctx.stroke();
+                    }
+                    
+                    // Draw center cross
+                    ctx.strokeStyle = '#f00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width/2 - 20, canvas.height/2);
+                    ctx.lineTo(canvas.width/2 + 20, canvas.height/2);
+                    ctx.moveTo(canvas.width/2, canvas.height/2 - 20);
+                    ctx.lineTo(canvas.width/2, canvas.height/2 + 20);
+                    ctx.stroke();
+                    
+                    addLog('Test render complete');
+                } catch (err) {
+                    addLog('Test render failed: ' + err.message, true);
+                }
+            };
+            
+            // Expose game to window for debugging
+            window.game = game;
+            addLog('Game exposed to window.game for debugging');
+            
+        } catch (err) {
+            addLog('Fatal error during initialization: ' + err.message, true);
+            addLog('Stack: ' + err.stack, true);
+            status.textContent = 'Status: Initialization failed - ' + err.message;
+            status.className = 'error';
+        }
+    </script>
+</body>
+</html>

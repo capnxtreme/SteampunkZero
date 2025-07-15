@@ -41,7 +41,7 @@ export class Vehicle {
     // Need to negate sin for X to get correct left/right movement
     const velocityX = -Math.sin(this.rotation) * this.speed;
     const velocityY = Math.cos(this.rotation) * this.speed;
-    
+
     this.position.x += velocityX * deltaTime;
     this.position.y += velocityY * deltaTime;
   }
@@ -72,14 +72,13 @@ export class Vehicle {
   steerLeft(deltaTime: number): void {
     // Only allow steering when moving
     if (this.speed > 10) {
-      this.rotation += this.turnSpeed * deltaTime * (this.speed / this.maxSpeed);
+      this.rotation -= this.turnSpeed * deltaTime * (this.speed / this.maxSpeed);
     }
   }
-
   steerRight(deltaTime: number): void {
     // Only allow steering when moving
     if (this.speed > 10) {
-      this.rotation -= this.turnSpeed * deltaTime * (this.speed / this.maxSpeed);
+      this.rotation += this.turnSpeed * deltaTime * (this.speed / this.maxSpeed);
     }
   }
 
@@ -88,7 +87,7 @@ export class Vehicle {
       x: this.position.x - this.width / 2,
       y: this.position.y - this.height / 2,
       width: this.width,
-      height: this.height
+      height: this.height,
     };
   }
 }

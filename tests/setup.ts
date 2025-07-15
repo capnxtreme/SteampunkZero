@@ -4,16 +4,16 @@ import { beforeAll, afterEach } from 'vitest';
 beforeAll(() => {
   // Mock canvas getContext if not available (for Node.js environment)
   if (!HTMLCanvasElement.prototype.getContext) {
-    HTMLCanvasElement.prototype.getContext = function(contextType: string) {
+    HTMLCanvasElement.prototype.getContext = function (contextType: string) {
       if (contextType === '2d') {
         return {
           clearRect: () => {},
           fillRect: () => {},
           getImageData: () => ({
-            data: new Uint8ClampedArray(4 * this.width * this.height)
+            data: new Uint8ClampedArray(4 * this.width * this.height),
           }),
           createLinearGradient: () => ({
-            addColorStop: () => {}
+            addColorStop: () => {},
           }),
           save: () => {},
           restore: () => {},
@@ -23,7 +23,7 @@ beforeAll(() => {
           stroke: () => {},
           fillStyle: '',
           strokeStyle: '',
-          lineWidth: 1
+          lineWidth: 1,
         };
       }
       return null;

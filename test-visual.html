@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visual Test - Track Size</title>
+    <style>
+        body { margin: 20px; background: #000; color: #fff; font-family: monospace; }
+        canvas { border: 2px solid #f00; display: block; margin: 10px; }
+        #log { background: #111; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Visual Test - Track Size</h1>
+    <div id="log"></div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script type="module">
+        const log = document.getElementById('log');
+        function addLog(msg) {
+            log.innerHTML += msg + '<br>';
+            console.log(msg);
+        }
+
+        try {
+            // Import the game
+            const { SteampunkRacer } = await import('./src/SteampunkRacer.js');
+            addLog('✓ SteampunkRacer imported');
+            
+            // Create game instance
+            const canvas = document.getElementById('gameCanvas');
+            const game = new SteampunkRacer(canvas);
+            addLog('✓ Game instance created');
+            
+            // Check track texture
+            const trackTexture = game['trackTexture'];
+            const trackCanvas = trackTexture.getCanvas();
+            addLog(`✓ Track texture size: ${trackCanvas.width}x${trackCanvas.height}`);
+            
+            // Check renderer scale
+            const renderer = game['mode7Renderer'];
+            addLog(`✓ Renderer type: ${renderer.constructor.name}`);
+            
+            // Get camera settings
+            const camera = renderer.getCamera();
+            addLog(`✓ Camera height: ${camera.height}`);
+            
+            // Start the game
+            await game.start();
+            addLog('✓ Game started successfully');
+            
+            // Show track comparison
+            setTimeout(() => {
+                // Create comparison canvas
+                const compareDiv = document.createElement('div');
+                compareDiv.innerHTML = '<h2>Track Texture (scaled to 400x400):</h2>';
+                document.body.appendChild(compareDiv);
+                
+                const compareCanvas = document.createElement('canvas');
+                compareCanvas.width = 400;
+                compareCanvas.height = 400;
+                compareCanvas.style.border = '2px solid #0f0';
+                document.body.appendChild(compareCanvas);
+                
+                const ctx = compareCanvas.getContext('2d');
+                ctx.drawImage(trackCanvas, 0, 0, 400, 400);
+                
+                // Analyze track
+                const imageData = ctx.getImageData(0, 0, 400, 400);
+                let roadPixels = 0;
+                let wallPixels = 0;
+                
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    const r = imageData.data[i];
+                    const g = imageData.data[i + 1];
+                    const b = imageData.data[i + 2];
+                    
+                    if (r === 64 && g === 64 && b === 64) roadPixels++;
+                    if (r <= 20 && g <= 20 && b <= 20) wallPixels++;
+                }
+                
+                addLog(`✓ Road pixels: ${roadPixels} (${(roadPixels / 160000 * 100).toFixed(1)}%)`);
+                addLog(`✓ Wall pixels: ${wallPixels} (${(wallPixels / 160000 * 100).toFixed(1)}%)`);
+                
+                // Check heightmap
+                const heightMap = trackTexture.getHeightMap();
+                let wallCount = 0;
+                for (let i = 0; i < heightMap.length; i++) {
+                    if (heightMap[i] > 0) wallCount++;
+                }
+                addLog(`✓ Height map walls: ${wallCount}`);
+                
+                // Show instructions
+                const instructDiv = document.createElement('div');
+                instructDiv.style.marginTop = '20px';
+                instructDiv.innerHTML = `
+                    <h3>Visual Check:</h3>
+                    <ul>
+                        <li>The track should appear MUCH larger on screen</li>
+                        <li>Track width should be about 30% of screen when viewed straight</li>
+                        <li>Walls should be visible as 3D barriers</li>
+                        <li>Press Arrow keys to drive</li>
+                        <li>Press D for debug mode</li>
+                    </ul>
+                `;
+                document.body.appendChild(instructDiv);
+                
+            }, 1000);
+            
+        } catch (err) {
+            addLog('ERROR: ' + err.message);
+            addLog('Stack: ' + err.stack);
+        }
+    </script>
+</body>
+</html>

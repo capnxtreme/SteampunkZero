@@ -22,14 +22,21 @@ describe('SteampunkRacer', () => {
       expect(game['state'].isPaused).toBe(false);
     });
 
-    it('should initialize with straight track', () => {
-      expect(game['state'].currentTrack).toBe('straight');
+    it('should initialize with random-1 track', () => {
+      expect(game['state'].currentTrack).toBe('random-1');
     });
   });
 
   describe('game control', () => {
-    it('should start the game', () => {
-      game.start();
+    it('should start the game', async () => {
+      // Mock the async methods
+      vi.spyOn(game['assetLoader'], 'loadInitialAssets').mockResolvedValue();
+      vi.spyOn(game['audioManager'], 'initialize').mockResolvedValue();
+      vi.spyOn(game['audioManager'], 'playBackgroundMusic').mockImplementation(
+        () => {}
+      );
+
+      await game.start();
       expect(game['state'].isRunning).toBe(true);
     });
 
@@ -42,36 +49,42 @@ describe('SteampunkRacer', () => {
     it('should toggle pause state', () => {
       game.start();
       expect(game['state'].isPaused).toBe(false);
-      
+
       game.pause();
       expect(game['state'].isPaused).toBe(true);
-      
+
       game.pause();
       expect(game['state'].isPaused).toBe(false);
     });
   });
 
   describe('track switching', () => {
-    it('should switch between straight and oval tracks', () => {
-      expect(game['state'].currentTrack).toBe('straight');
-      
+    it('should switch between random tracks and oval', () => {
+      expect(game['state'].currentTrack).toBe('random-1');
+
+      game.switchTrack();
+      expect(game['state'].currentTrack).toBe('random-2');
+
+      game.switchTrack();
+      expect(game['state'].currentTrack).toBe('random-3');
+
       game.switchTrack();
       expect(game['state'].currentTrack).toBe('oval');
-      
+
       game.switchTrack();
-      expect(game['state'].currentTrack).toBe('straight');
+      expect(game['state'].currentTrack).toBe('random-1');
     });
 
     it('should reset vehicle position when switching tracks', () => {
       const initialX = game['vehicle'].position.x;
       const initialY = game['vehicle'].position.y;
-      
+
       // Move vehicle
       game['vehicle'].position.x += 100;
       game['vehicle'].position.y += 100;
-      
+
       game.switchTrack();
-      
+
       // Vehicle should be reset to start position
       expect(game['vehicle'].position.x).not.toBe(initialX + 100);
       expect(game['vehicle'].position.y).not.toBe(initialY + 100);

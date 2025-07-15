@@ -26,11 +26,11 @@ export class VehicleSprite {
 
     // Draw vehicle body as a pointed rectangle (like a car seen from above)
     context.beginPath();
-    
+
     // Main body
     const halfWidth = width / 2;
     const halfHeight = height / 2;
-    
+
     // Start from rear left
     context.moveTo(-halfWidth, -halfHeight);
     // To front left

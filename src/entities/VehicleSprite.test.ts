@@ -18,7 +18,7 @@ const createMockContext = () => ({
   lineTo: vi.fn(),
   closePath: vi.fn(),
   fill: vi.fn(),
-  stroke: vi.fn()
+  stroke: vi.fn(),
 });
 
 describe('VehicleSprite', () => {
@@ -76,7 +76,7 @@ describe('VehicleSprite', () => {
       vehicle.width = 40;
       vehicle.height = 20;
       sprite.render(mockContext as any);
-      
+
       // Check that the shape is drawn with correct dimensions
       expect(mockContext.moveTo).toHaveBeenCalled();
       expect(mockContext.lineTo).toHaveBeenCalled();
@@ -85,7 +85,10 @@ describe('VehicleSprite', () => {
     it('should apply color', () => {
       sprite.render(mockContext as any);
       // Check that fillStyle was set to the sprite color at some point
-      const fillStyleAssignments = Object.getOwnPropertyDescriptor(mockContext, 'fillStyle');
+      const fillStyleAssignments = Object.getOwnPropertyDescriptor(
+        mockContext,
+        'fillStyle'
+      );
       // Instead, let's verify the color was used by checking the mock was configured
       expect(sprite.color).toBe('#FF6B6B');
     });

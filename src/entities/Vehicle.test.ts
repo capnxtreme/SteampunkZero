@@ -32,7 +32,7 @@ describe('Vehicle', () => {
       vehicle.speed = 100;
       vehicle.rotation = 0; // Facing down (+Y direction)
       vehicle.update(0.016); // 16ms delta time
-      
+
       expect(vehicle.position.x).toBeCloseTo(0);
       expect(vehicle.position.y).toBeCloseTo(1.6);
     });
@@ -41,7 +41,7 @@ describe('Vehicle', () => {
       vehicle.speed = 100;
       vehicle.rotation = Math.PI / 2; // 90° = facing left (-X)
       vehicle.update(0.016);
-      
+
       expect(vehicle.position.x).toBeCloseTo(-1.6); // Moving left
       expect(vehicle.position.y).toBeCloseTo(0);
     });
@@ -118,7 +118,7 @@ describe('Vehicle', () => {
     it('should return bounding box', () => {
       vehicle.position = { x: 100, y: 100 };
       const bounds = vehicle.getBounds();
-      
+
       expect(bounds).toHaveProperty('x');
       expect(bounds).toHaveProperty('y');
       expect(bounds).toHaveProperty('width');

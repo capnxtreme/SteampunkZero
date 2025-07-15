@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Track Test</title>
+    <style>
+        body { margin: 20px; font-family: monospace; background: #222; color: #fff; }
+        canvas { border: 2px solid #666; display: block; margin: 10px; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Direct Track Texture Test</h1>
+    <p>This tests TrackTexture directly without the game</p>
+    <canvas id="testCanvas" width="1024" height="1024" style="width: 512px; height: 512px;"></canvas>
+    <div>
+        <button id="oval">Oval</button>
+        <button id="circuit">Circuit</button>
+        <button id="technical">Technical</button>
+        <button id="random">Random</button>
+    </div>
+    <div id="info"></div>
+
+    <script type="module">
+        // Force no cache
+        const cacheBust = '?v=' + Date.now();
+        
+        const { TrackTexture } = await import('./src/tracks/TrackTexture.js' + cacheBust);
+        
+        const canvas = document.getElementById('testCanvas');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
+        
+        function testTrack(type) {
+            console.log('Generating', type, 'track...');
+            info.textContent = 'Generating ' + type + ' track...';
+            
+            const track = new TrackTexture(1024, 1024);
+            
+            switch(type) {
+                case 'oval':
+                    track.generateOvalTrack();
+                    break;
+                case 'circuit':
+                    track.generateCircuitTrack();
+                    break;
+                case 'technical':
+                    track.generateTechnicalTrack();
+                    break;
+                case 'random':
+                    track.generateRandomTrack();
+                    break;
+            }
+            
+            // Draw to canvas
+            ctx.clearRect(0, 0, 1024, 1024);
+            ctx.drawImage(track.getCanvas(), 0, 0);
+            
+            // Analyze track
+            let roadPixels = 0;
+            let wallPixels = 0;
+            let offroadPixels = 0;
+            
+            const imageData = ctx.getImageData(0, 0, 1024, 1024);
+            const pixels = imageData.data;
+            
+            for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+                
+                if (r <= 20 && g <= 20 && b <= 20) {
+                    wallPixels++;
+                } else if (r >= 55 && r <= 85 && g >= 55 && g <= 85 && b >= 55 && b <= 85) {
+                    roadPixels++;
+                } else if (g > r && g > b && g > 50) {
+                    offroadPixels++;
+                }
+            }
+            
+            const total = 1024 * 1024;
+            info.innerHTML = `
+                <h3>${type} Track Analysis:</h3>
+                <p>Road: ${((roadPixels / total) * 100).toFixed(1)}%</p>
+                <p>Walls: ${((wallPixels / total) * 100).toFixed(1)}%</p>
+                <p>Off-road: ${((offroadPixels / total) * 100).toFixed(1)}%</p>
+                <p>TrackTexture instance: ${track.constructor.name}</p>
+                <p>Canvas size: ${track.getCanvas().width}x${track.getCanvas().height}</p>
+            `;
+            
+            console.log('Track generated', {
+                road: roadPixels,
+                walls: wallPixels,
+                offroad: offroadPixels
+            });
+        }
+        
+        document.getElementById('oval').onclick = () => testTrack('oval');
+        document.getElementById('circuit').onclick = () => testTrack('circuit');
+        document.getElementById('technical').onclick = () => testTrack('technical');
+        document.getElementById('random').onclick = () => testTrack('random');
+        
+        // Test initial track
+        testTrack('oval');
+    </script>
+</body>
+</html>

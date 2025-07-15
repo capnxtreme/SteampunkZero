@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinate System Debug</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        canvas {
+            border: 2px solid #444;
+            cursor: crosshair;
+        }
+        .info {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5a5a5a;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coordinate System Debug</h1>
+    
+    <div class="controls">
+        <button onclick="generateTrack('oval')">Oval Track</button>
+        <button onclick="generateTrack('random')">Random Track</button>
+        <button onclick="toggleDebugMode()">Toggle Debug Mode</button>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="color-box" style="background: #404040;"></div>
+            <span>Road</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #2d5016;"></div>
+            <span>Off-track</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #000000;"></div>
+            <span>Wall</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #ffff00;"></div>
+            <span>Boost</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #ff0000;"></div>
+            <span>Hazard</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #ffffff;"></div>
+            <span>Start/Finish</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div>
+            <h2>Track Texture (1024x1024)</h2>
+            <canvas id="trackCanvas" width="512" height="512"></canvas>
+            <div id="trackInfo" class="info">
+                Mouse Position: <span id="trackMouse">-</span><br>
+                Surface Type: <span id="trackSurface">-</span><br>
+                World Coords: <span id="worldCoords">-</span>
+            </div>
+        </div>
+        
+        <div>
+            <h2>Mode 7 View</h2>
+            <canvas id="mode7Canvas" width="512" height="512"></canvas>
+            <div id="mode7Info" class="info">
+                Camera Position: <span id="cameraPos">-</span><br>
+                Camera Angle: <span id="cameraAngle">-</span><br>
+                Vehicle Position: <span id="vehiclePos">-</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info" style="margin-top: 20px;">
+        <h3>Coordinate Mapping Debug Info:</h3>
+        <div id="debugInfo">
+            <p>Click on either canvas to see coordinate mappings.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { TrackTexture } from './src/tracks/TrackTexture.js';
+        import { Mode7Renderer } from './src/rendering/Mode7Renderer.js';
+        import { Vehicle } from './src/entities/Vehicle.js';
+
+        const trackCanvas = document.getElementById('trackCanvas');
+        const trackCtx = trackCanvas.getContext('2d');
+        const mode7Canvas = document.getElementById('mode7Canvas');
+        
+        let trackTexture = new TrackTexture(1024, 1024);
+        let mode7Renderer = new Mode7Renderer(mode7Canvas);
+        let vehicle = new Vehicle({ x: 0, y: 0 });
+        let debugMode = false;
+
+        // Generate initial track
+        trackTexture.generateOvalTrack();
+        updateDisplay();
+
+        function generateTrack(type) {
+            if (type === 'oval') {
+                trackTexture.generateOvalTrack();
+            } else {
+                trackTexture.generateRandomTrack();
+            }
+            updateDisplay();
+        }
+
+        function toggleDebugMode() {
+            debugMode = !debugMode;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Draw track texture scaled down
+            trackCtx.save();
+            trackCtx.scale(0.5, 0.5);
+            trackCtx.drawImage(trackTexture.getCanvas(), 0, 0);
+            trackCtx.restore();
+
+            if (debugMode) {
+                // Draw coordinate grid
+                trackCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                trackCtx.lineWidth = 1;
+                
+                // Draw grid lines every 100 pixels (50 in scaled view)
+                for (let x = 0; x <= 512; x += 50) {
+                    trackCtx.beginPath();
+                    trackCtx.moveTo(x, 0);
+                    trackCtx.lineTo(x, 512);
+                    trackCtx.stroke();
+                }
+                for (let y = 0; y <= 512; y += 50) {
+                    trackCtx.beginPath();
+                    trackCtx.moveTo(0, y);
+                    trackCtx.lineTo(512, y);
+                    trackCtx.stroke();
+                }
+
+                // Draw origin marker (512, 512 in texture = 0, 0 in world)
+                trackCtx.fillStyle = 'cyan';
+                trackCtx.fillRect(256 - 3, 256 - 3, 6, 6);
+                trackCtx.fillText('(0,0)', 260, 260);
+            }
+
+            // Update Mode 7 view
+            updateMode7View();
+        }
+
+        function updateMode7View() {
+            mode7Renderer.clear();
+            mode7Renderer.renderHorizon();
+            mode7Renderer.renderMode7(trackTexture.getCanvas());
+
+            // Draw vehicle marker in Mode 7 view
+            const ctx = mode7Renderer.getContext();
+            ctx.fillStyle = 'red';
+            ctx.fillRect(mode7Canvas.width / 2 - 5, mode7Canvas.height - 150 - 5, 10, 10);
+        }
+
+        // Mouse tracking for track canvas
+        trackCanvas.addEventListener('mousemove', (e) => {
+            const rect = trackCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Scale up to texture coordinates
+            const textureX = Math.floor(x * 2);
+            const textureY = Math.floor(y * 2);
+            
+            // Convert to world coordinates
+            const worldX = textureX - 512;
+            const worldY = textureY - 512;
+            
+            document.getElementById('trackMouse').textContent = `(${textureX}, ${textureY})`;
+            document.getElementById('worldCoords').textContent = `(${worldX}, ${worldY})`;
+            
+            const surface = trackTexture.getSurfaceAt(textureX, textureY);
+            document.getElementById('trackSurface').textContent = surface;
+        });
+
+        trackCanvas.addEventListener('click', (e) => {
+            const rect = trackCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Scale up to texture coordinates
+            const textureX = Math.floor(x * 2);
+            const textureY = Math.floor(y * 2);
+            
+            // Convert to world coordinates
+            const worldX = textureX - 512;
+            const worldY = textureY - 512;
+            
+            // Move vehicle to clicked position
+            vehicle.position.x = worldX;
+            vehicle.position.y = worldY;
+            
+            // Update camera
+            mode7Renderer.setCameraPosition(worldX, worldY - 100);
+            mode7Renderer.setCameraAngle(0);
+            
+            updateDisplay();
+            updateDebugInfo(worldX, worldY, textureX, textureY);
+        });
+
+        function updateDebugInfo(worldX, worldY, textureX, textureY) {
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML = `
+                <p><strong>Last Click:</strong></p>
+                <p>World Coordinates: (${worldX}, ${worldY})</p>
+                <p>Texture Coordinates: (${textureX}, ${textureY})</p>
+                <p>Surface Type: ${trackTexture.getSurfaceAt(textureX, textureY)}</p>
+                <hr>
+                <p><strong>Coordinate System:</strong></p>
+                <p>World Origin (0,0) → Texture (512, 512)</p>
+                <p>World X Range: [-512, 511] → Texture X: [0, 1023]</p>
+                <p>World Y Range: [-512, 511] → Texture Y: [0, 1023]</p>
+                <p>Conversion: textureCoord = worldCoord + 512</p>
+            `;
+        }
+
+        // Update camera info
+        setInterval(() => {
+            const camera = mode7Renderer.getCamera();
+            document.getElementById('cameraPos').textContent = `(${camera.x.toFixed(0)}, ${camera.y.toFixed(0)})`;
+            document.getElementById('cameraAngle').textContent = `${(camera.angle * 180 / Math.PI).toFixed(1)}°`;
+            document.getElementById('vehiclePos').textContent = `(${vehicle.position.x.toFixed(0)}, ${vehicle.position.y.toFixed(0)})`;
+        }, 100);
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            const moveSpeed = 10;
+            switch(e.key) {
+                case 'ArrowUp':
+                    vehicle.position.y -= moveSpeed;
+                    break;
+                case 'ArrowDown':
+                    vehicle.position.y += moveSpeed;
+                    break;
+                case 'ArrowLeft':
+                    vehicle.position.x -= moveSpeed;
+                    break;
+                case 'ArrowRight':
+                    vehicle.position.x += moveSpeed;
+                    break;
+            }
+            
+            // Update camera to follow vehicle
+            mode7Renderer.setCameraPosition(
+                vehicle.position.x,
+                vehicle.position.y - 100
+            );
+            
+            updateDisplay();
+            
+            // Show current position info
+            const textureX = vehicle.position.x + 512;
+            const textureY = vehicle.position.y + 512;
+            updateDebugInfo(vehicle.position.x, vehicle.position.y, textureX, textureY);
+        });
+    </script>
+</body>
+</html>

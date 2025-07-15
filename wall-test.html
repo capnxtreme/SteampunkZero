@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wall Collision Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        canvas {
+            border: 2px solid #444;
+        }
+        .info {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5a5a5a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wall Collision Test</h1>
+    
+    <div class="controls">
+        <button onclick="testMode = 'manual'; resetTest()">Manual Control</button>
+        <button onclick="testMode = 'auto'; resetTest()">Auto Test</button>
+        <button onclick="showGrid = !showGrid; render()">Toggle Grid</button>
+    </div>
+    
+    <div class="container">
+        <div>
+            <h2>Track View (Zoomed)</h2>
+            <canvas id="trackCanvas" width="400" height="400"></canvas>
+            <div class="info">
+                Vehicle World Pos: <span id="vehiclePos">-</span><br>
+                Vehicle Texture Pos: <span id="texturePos">-</span><br>
+                Surface: <span id="surface">-</span><br>
+                Collision Points: <span id="collisionInfo">-</span>
+            </div>
+        </div>
+        
+        <div>
+            <h2>3D View</h2>
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div class="info">
+                Use WASD to move vehicle<br>
+                Q/E to rotate<br>
+                Red = Wall collision detected<br>
+                Yellow dots = Collision check points
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { TrackTexture } from './src/tracks/TrackTexture.js';
+        import { Mode7Renderer3D } from './src/rendering/Mode7Renderer3D.js';
+        
+        const trackCanvas = document.getElementById('trackCanvas');
+        const trackCtx = trackCanvas.getContext('2d');
+        const gameCanvas = document.getElementById('gameCanvas');
+        
+        let trackTexture = new TrackTexture(1024, 1024);
+        let renderer3D = new Mode7Renderer3D(gameCanvas);
+        
+        let vehicle = {
+            x: 0,
+            y: 0,
+            rotation: 0,
+            speed: 0
+        };
+        
+        let testMode = 'manual';
+        let showGrid = true;
+        let keys = {};
+        
+        // Create a simple test track with clear walls
+        function createTestTrack() {
+            const ctx = trackTexture.getCanvas().getContext('2d');
+            const width = 1024;
+            const height = 1024;
+            
+            // Fill with grass
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw a square track
+            ctx.fillStyle = '#404040'; // Road
+            ctx.fillRect(300, 300, 424, 424);
+            
+            // Draw walls around the track
+            ctx.fillStyle = '#000000'; // Walls
+            // Outer walls
+            ctx.fillRect(280, 280, 464, 20);  // Top
+            ctx.fillRect(280, 724, 464, 20);  // Bottom
+            ctx.fillRect(280, 280, 20, 464);  // Left
+            ctx.fillRect(724, 280, 20, 464);  // Right
+            
+            // Inner walls
+            ctx.fillRect(350, 350, 324, 20);  // Top
+            ctx.fillRect(350, 654, 324, 20);  // Bottom
+            ctx.fillRect(350, 350, 20, 324);  // Left
+            ctx.fillRect(654, 350, 20, 324);  // Right
+            
+            // Update height map
+            trackTexture.updateHeightMap();
+        }
+        
+        function resetTest() {
+            vehicle.x = 0;
+            vehicle.y = 0;
+            vehicle.rotation = 0;
+            vehicle.speed = 0;
+            updateCamera();
+        }
+        
+        function updateCamera() {
+            renderer3D.setCameraPosition(vehicle.x, vehicle.y - 50);
+            renderer3D.setCameraAngle(vehicle.rotation);
+            renderer3D.setCameraHeight(50);
+        }
+        
+        function checkCollision() {
+            const checkPoints = [
+                { dx: 0, dy: 0 },      // Center
+                { dx: 10, dy: 0 },     // Right
+                { dx: -10, dy: 0 },    // Left
+                { dx: 0, dy: 10 },     // Front
+                { dx: 0, dy: -10 },    // Back
+                { dx: 7, dy: 7 },      // Front-right
+                { dx: -7, dy: 7 },     // Front-left
+                { dx: 7, dy: -7 },     // Back-right
+                { dx: -7, dy: -7 }     // Back-left
+            ];
+            
+            let hitWall = false;
+            let collisionInfo = [];
+            
+            for (const point of checkPoints) {
+                // Rotate check point based on vehicle rotation
+                const cos = Math.cos(vehicle.rotation);
+                const sin = Math.sin(vehicle.rotation);
+                const rotX = point.dx * cos - point.dy * sin;
+                const rotY = point.dx * sin + point.dy * cos;
+                
+                const checkX = vehicle.x + rotX;
+                const checkY = vehicle.y + rotY;
+                
+                // Convert to texture coordinates
+                const textureX = Math.floor(checkX + 512);
+                const textureY = Math.floor(checkY + 512);
+                
+                if (textureX >= 0 && textureX < 1024 && textureY >= 0 && textureY < 1024) {
+                    const surface = trackTexture.getSurfaceAt(textureX, textureY);
+                    
+                    if (surface === 'wall') {
+                        hitWall = true;
+                        collisionInfo.push(`Wall at (${textureX}, ${textureY})`);
+                    }
+                }
+            }
+            
+            return { hitWall, collisionInfo };
+        }
+        
+        function update() {
+            const oldX = vehicle.x;
+            const oldY = vehicle.y;
+            
+            // Manual control
+            if (testMode === 'manual') {
+                if (keys['w']) vehicle.y -= 2;
+                if (keys['s']) vehicle.y += 2;
+                if (keys['a']) vehicle.x -= 2;
+                if (keys['d']) vehicle.x += 2;
+                if (keys['q']) vehicle.rotation -= 0.05;
+                if (keys['e']) vehicle.rotation += 0.05;
+            }
+            
+            // Check collision
+            const collision = checkCollision();
+            if (collision.hitWall) {
+                vehicle.x = oldX;
+                vehicle.y = oldY;
+            }
+            
+            updateCamera();
+            render();
+            
+            // Update info
+            document.getElementById('vehiclePos').textContent = `(${vehicle.x.toFixed(0)}, ${vehicle.y.toFixed(0)})`;
+            const texX = Math.floor(vehicle.x + 512);
+            const texY = Math.floor(vehicle.y + 512);
+            document.getElementById('texturePos').textContent = `(${texX}, ${texY})`;
+            document.getElementById('surface').textContent = trackTexture.getSurfaceAt(texX, texY);
+            document.getElementById('collisionInfo').textContent = collision.collisionInfo.join(', ') || 'None';
+        }
+        
+        function render() {
+            // Render zoomed track view
+            trackCtx.save();
+            trackCtx.fillStyle = '#222';
+            trackCtx.fillRect(0, 0, 400, 400);
+            
+            // Calculate zoom area (200x200 pixels around vehicle)
+            const zoomSize = 200;
+            const texX = vehicle.x + 512;
+            const texY = vehicle.y + 512;
+            const startX = Math.max(0, texX - zoomSize/2);
+            const startY = Math.max(0, texY - zoomSize/2);
+            
+            // Draw zoomed portion of track
+            trackCtx.drawImage(
+                trackTexture.getCanvas(),
+                startX, startY, zoomSize, zoomSize,
+                0, 0, 400, 400
+            );
+            
+            // Draw grid if enabled
+            if (showGrid) {
+                trackCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                trackCtx.lineWidth = 1;
+                for (let i = 0; i <= 400; i += 40) {
+                    trackCtx.beginPath();
+                    trackCtx.moveTo(i, 0);
+                    trackCtx.lineTo(i, 400);
+                    trackCtx.stroke();
+                    trackCtx.beginPath();
+                    trackCtx.moveTo(0, i);
+                    trackCtx.lineTo(400, i);
+                    trackCtx.stroke();
+                }
+            }
+            
+            // Draw vehicle and collision points
+            const vehicleScreenX = (texX - startX) * 2;
+            const vehicleScreenY = (texY - startY) * 2;
+            
+            // Draw collision check points
+            const checkPoints = [
+                { dx: 0, dy: 0 },      // Center
+                { dx: 10, dy: 0 },     // Right
+                { dx: -10, dy: 0 },    // Left
+                { dx: 0, dy: 10 },     // Front
+                { dx: 0, dy: -10 },    // Back
+                { dx: 7, dy: 7 },      // Front-right
+                { dx: -7, dy: 7 },     // Front-left
+                { dx: 7, dy: -7 },     // Back-right
+                { dx: -7, dy: -7 }     // Back-left
+            ];
+            
+            trackCtx.fillStyle = 'yellow';
+            for (const point of checkPoints) {
+                const cos = Math.cos(vehicle.rotation);
+                const sin = Math.sin(vehicle.rotation);
+                const rotX = point.dx * cos - point.dy * sin;
+                const rotY = point.dx * sin + point.dy * cos;
+                
+                const pointScreenX = vehicleScreenX + rotX * 2;
+                const pointScreenY = vehicleScreenY + rotY * 2;
+                
+                trackCtx.beginPath();
+                trackCtx.arc(pointScreenX, pointScreenY, 3, 0, Math.PI * 2);
+                trackCtx.fill();
+            }
+            
+            // Draw vehicle
+            const collision = checkCollision();
+            trackCtx.fillStyle = collision.hitWall ? 'red' : 'lime';
+            trackCtx.save();
+            trackCtx.translate(vehicleScreenX, vehicleScreenY);
+            trackCtx.rotate(vehicle.rotation);
+            trackCtx.fillRect(-10, -10, 20, 20);
+            trackCtx.strokeStyle = 'white';
+            trackCtx.beginPath();
+            trackCtx.moveTo(0, -10);
+            trackCtx.lineTo(0, -20);
+            trackCtx.stroke();
+            trackCtx.restore();
+            
+            trackCtx.restore();
+            
+            // Render 3D view
+            renderer3D.renderHorizon();
+            renderer3D.renderMode7With3D(trackTexture.getCanvas(), trackTexture.getHeightMap());
+        }
+        
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Initialize
+        createTestTrack();
+        resetTest();
+        
+        // Game loop
+        setInterval(update, 1000/60);
+    </script>
+</body>
+</html>

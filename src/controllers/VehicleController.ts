@@ -20,10 +20,10 @@ export class VehicleController {
       left: 'ArrowLeft',
       right: 'ArrowRight',
       up: 'ArrowUp',
-      down: 'ArrowDown'
+      down: 'ArrowDown',
     };
     this.pressedKeys = new Set<string>();
-    
+
     // Bind event handlers to preserve 'this' context
     this.boundHandleKeyDown = this.handleKeyDown.bind(this);
     this.boundHandleKeyUp = this.handleKeyUp.bind(this);
@@ -31,7 +31,7 @@ export class VehicleController {
 
   handleKeyDown(event: KeyboardEvent): void {
     const key = event.key;
-    
+
     // Check if this is one of our control keys
     if (Object.values(this.keys).includes(key)) {
       event.preventDefault();

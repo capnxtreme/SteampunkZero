@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Collision Detection Test</title>
+    <style>
+        body { margin: 20px; font-family: monospace; background: #222; color: #fff; }
+        canvas { border: 2px solid #666; display: inline-block; margin: 10px; cursor: crosshair; }
+        #info { margin: 20px 0; }
+        .surface-type { padding: 5px 10px; margin: 5px; display: inline-block; }
+        .wall { background: #000; color: #fff; }
+        .road { background: #404040; color: #fff; }
+        .offtrack { background: #2d5016; color: #fff; }
+        .boost { background: #ffff00; color: #000; }
+        .hazard { background: #ff0000; color: #fff; }
+        .startFinish { background: #ffffff; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>Track Collision Detection Test</h1>
+    <div id="info">
+        <p>Move mouse over track to test collision detection</p>
+        <p>Current surface: <span id="surface" class="surface-type">-</span></p>
+        <p>Mouse position: <span id="mousePos">-</span></p>
+        <p>Color at position: <span id="colorInfo">-</span></p>
+    </div>
+    
+    <div>
+        <canvas id="trackCanvas" width="512" height="512"></canvas>
+        <canvas id="collisionCanvas" width="512" height="512"></canvas>
+    </div>
+    
+    <div>
+        <button id="oval">Oval Track</button>
+        <button id="circuit">Circuit Track</button>
+        <button id="technical">Technical Track</button>
+        <button id="flowing">Flowing Track</button>
+    </div>
+
+    <script type="module">
+        import { TrackTexture } from './src/tracks/TrackTexture.js';
+        
+        const trackCanvas = document.getElementById('trackCanvas');
+        const collisionCanvas = document.getElementById('collisionCanvas');
+        const trackCtx = trackCanvas.getContext('2d');
+        const collisionCtx = collisionCanvas.getContext('2d');
+        
+        // Create track texture
+        const trackTexture = new TrackTexture(512, 512);
+        
+        // Function to visualize collision detection
+        function visualizeCollisions() {
+            const imageData = collisionCtx.createImageData(512, 512);
+            const data = imageData.data;
+            
+            for (let y = 0; y < 512; y++) {
+                for (let x = 0; x < 512; x++) {
+                    const surface = trackTexture.getSurfaceAt(x, y);
+                    const index = (y * 512 + x) * 4;
+                    
+                    // Color based on detected surface
+                    switch(surface) {
+                        case 'wall':
+                            data[index] = 0; data[index + 1] = 0; data[index + 2] = 0;
+                            break;
+                        case 'road':
+                            data[index] = 64; data[index + 1] = 64; data[index + 2] = 64;
+                            break;
+                        case 'offtrack':
+                            data[index] = 45; data[index + 1] = 80; data[index + 2] = 22;
+                            break;
+                        case 'boost':
+                            data[index] = 255; data[index + 1] = 255; data[index + 2] = 0;
+                            break;
+                        case 'hazard':
+                            data[index] = 255; data[index + 1] = 0; data[index + 2] = 0;
+                            break;
+                        case 'startFinish':
+                            data[index] = 255; data[index + 1] = 255; data[index + 2] = 255;
+                            break;
+                    }
+                    data[index + 3] = 255; // Alpha
+                }
+            }
+            
+            collisionCtx.putImageData(imageData, 0, 0);
+        }
+        
+        // Function to update track display
+        function updateTrack() {
+            // Draw track texture to canvas
+            trackCtx.drawImage(trackTexture.getCanvas(), 0, 0, 512, 512);
+            
+            // Update collision visualization
+            visualizeCollisions();
+        }
+        
+        // Mouse move handler
+        trackCanvas.addEventListener('mousemove', (e) => {
+            const rect = trackCanvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) * (512 / rect.width));
+            const y = Math.floor((e.clientY - rect.top) * (512 / rect.height));
+            
+            const surface = trackTexture.getSurfaceAt(x, y);
+            const surfaceEl = document.getElementById('surface');
+            surfaceEl.textContent = surface;
+            surfaceEl.className = 'surface-type ' + surface;
+            
+            document.getElementById('mousePos').textContent = `${x}, ${y}`;
+            
+            // Get actual color
+            const pixelData = trackCtx.getImageData(x, y, 1, 1).data;
+            document.getElementById('colorInfo').textContent = 
+                `RGB(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`;
+            
+            // Highlight test area on collision canvas
+            collisionCtx.drawImage(collisionCanvas, 0, 0);
+            collisionCtx.strokeStyle = '#ff00ff';
+            collisionCtx.lineWidth = 2;
+            collisionCtx.strokeRect(x - 1, y - 1, 3, 3);
+        });
+        
+        // Track type buttons
+        document.getElementById('oval').onclick = () => {
+            trackTexture.generateOvalTrack();
+            updateTrack();
+        };
+        
+        document.getElementById('circuit').onclick = () => {
+            trackTexture.generateCircuitTrack();
+            updateTrack();
+        };
+        
+        document.getElementById('technical').onclick = () => {
+            trackTexture.generateTechnicalTrack();
+            updateTrack();
+        };
+        
+        document.getElementById('flowing').onclick = () => {
+            trackTexture.generateFlowingTrack();
+            updateTrack();
+        };
+        
+        // Initial track
+        trackTexture.generateOvalTrack();
+        updateTrack();
+    </script>
+</body>
+</html>

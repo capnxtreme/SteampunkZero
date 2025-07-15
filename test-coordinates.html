@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinate Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: monospace;
+            color: white;
+        }
+        #container {
+            text-align: center;
+        }
+        #gameCanvas {
+            border: 2px solid #444;
+            cursor: crosshair;
+        }
+        #info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Test Coordinate Mapping</h1>
+        <p>Press D to toggle debug mode, T to switch tracks</p>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="info">
+            Click anywhere on the canvas to see coordinate info
+        </div>
+    </div>
+
+    <script type="module">
+        import { SteampunkRacer } from './src/SteampunkRacer.js';
+
+        const canvas = document.getElementById('gameCanvas');
+        const info = document.getElementById('info');
+        const game = new SteampunkRacer(canvas);
+
+        // Start the game
+        game.start();
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            game.handleKeyPress(e.key);
+        });
+
+        // Add click handler for debugging
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            info.innerHTML = `
+                <strong>Click Position:</strong> (${x}, ${y})<br>
+                <strong>Instructions:</strong><br>
+                - Use arrow keys to move the vehicle<br>
+                - Press D to toggle debug mode (shows coordinates and mini-map)<br>
+                - Press T to switch between tracks<br>
+                - Press P to pause<br>
+                <br>
+                <strong>Debug Info:</strong><br>
+                - The mini-map shows your position on the track texture<br>
+                - World coordinates (0,0) map to texture coordinates (512, 512)<br>
+                - Red dot on mini-map shows vehicle position<br>
+                - Line shows vehicle direction
+            `;
+        });
+
+        // Initial info
+        info.innerHTML = `
+            <strong>Getting Started:</strong><br>
+            - Press D to enable debug mode<br>
+            - Use arrow keys to drive<br>
+            - Watch the coordinate mapping in debug mode
+        `;
+    </script>
+</body>
+</html>

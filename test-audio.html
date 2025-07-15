@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio System Test - SteampunkZero</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            background-color: #2a2a2a;
+            color: #ffd700;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, #8b6914, #cd7f32);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #000;
+            text-shadow: 2px 2px 4px rgba(255,215,0,0.5);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            background: linear-gradient(to bottom, #654321, #8b4513);
+            color: #ffd700;
+            border: 2px solid #000;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-family: Georgia, serif;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: linear-gradient(to bottom, #8b4513, #654321);
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .status {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+            color: #fff;
+        }
+        .slider-container {
+            margin: 20px 0;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #654321;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd700;
+            cursor: pointer;
+        }
+        .instructions {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SteampunkZero Audio System Test</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <p>This page tests the audio system without any actual audio files.</p>
+            <p>The AudioManager will gracefully handle missing files and log warnings to the console.</p>
+            <p>To add real audio, place the following files in /assets/audio/:</p>
+            <ul>
+                <li>engine_loop.mp3 - Engine sound loop</li>
+                <li>steam_hiss.mp3 - Steam effect</li>
+                <li>collision.mp3 - Impact sound</li>
+                <li>boost.mp3 - Boost activation</li>
+                <li>background_music.mp3 - Background music</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <button id="initBtn">Initialize Audio</button>
+            <button id="engineBtn">Toggle Engine</button>
+            <button id="collisionBtn">Play Collision</button>
+            <button id="boostBtn">Play Boost</button>
+            <button id="musicBtn">Toggle Music</button>
+            <button id="muteBtn">Toggle Mute</button>
+        </div>
+
+        <div class="slider-container">
+            <label for="volumeSlider">Master Volume: <span id="volumeValue">70%</span></label>
+            <input type="range" id="volumeSlider" min="0" max="100" value="70">
+        </div>
+
+        <div class="slider-container">
+            <label for="speedSlider">Engine Speed: <span id="speedValue">0%</span></label>
+            <input type="range" id="speedSlider" min="0" max="150" value="0">
+        </div>
+
+        <div class="status" id="status">
+            Status: Not initialized
+        </div>
+    </div>
+
+    <script type="module">
+        import { AudioManager } from './src/audio/AudioManager.js';
+        
+        let audioManager = new AudioManager();
+        let enginePlaying = false;
+        let musicPlaying = false;
+        let maxSpeed = 300; // Arbitrary max speed for testing
+        
+        const status = document.getElementById('status');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        
+        function updateStatus(message) {
+            status.textContent = `Status: ${message}`;
+            console.log(message);
+        }
+        
+        // Initialize button
+        document.getElementById('initBtn').addEventListener('click', async () => {
+            try {
+                await audioManager.initialize();
+                updateStatus('Audio initialized successfully');
+            } catch (error) {
+                updateStatus('Failed to initialize audio: ' + error.message);
+            }
+        });
+        
+        // Engine toggle
+        document.getElementById('engineBtn').addEventListener('click', () => {
+            if (enginePlaying) {
+                audioManager.stopEngineSound();
+                enginePlaying = false;
+                updateStatus('Engine stopped');
+            } else {
+                const speed = (speedSlider.value / 100) * maxSpeed;
+                audioManager.playEngineSound(speed, maxSpeed);
+                enginePlaying = true;
+                updateStatus('Engine started');
+            }
+        });
+        
+        // Collision sound
+        document.getElementById('collisionBtn').addEventListener('click', () => {
+            audioManager.playCollisionSound();
+            updateStatus('Collision sound played');
+        });
+        
+        // Boost sound
+        document.getElementById('boostBtn').addEventListener('click', () => {
+            audioManager.playBoostSound();
+            updateStatus('Boost sound played');
+        });
+        
+        // Music toggle
+        document.getElementById('musicBtn').addEventListener('click', () => {
+            if (musicPlaying) {
+                audioManager.stopBackgroundMusic();
+                musicPlaying = false;
+                updateStatus('Music stopped');
+            } else {
+                audioManager.playBackgroundMusic();
+                musicPlaying = true;
+                updateStatus('Music started');
+            }
+        });
+        
+        // Mute toggle
+        document.getElementById('muteBtn').addEventListener('click', () => {
+            const isMuted = !audioManager.config?.muted;
+            audioManager.setMuted(isMuted);
+            updateStatus(isMuted ? 'Audio muted' : 'Audio unmuted');
+            
+            // If muted, reset playing states
+            if (isMuted) {
+                enginePlaying = false;
+                musicPlaying = false;
+            }
+        });
+        
+        // Volume control
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = e.target.value / 100;
+            audioManager.setVolume(volume);
+            volumeValue.textContent = e.target.value + '%';
+        });
+        
+        // Speed control (for engine pitch)
+        speedSlider.addEventListener('input', (e) => {
+            const speed = (e.target.value / 100) * maxSpeed;
+            speedValue.textContent = e.target.value + '%';
+            
+            // Update engine pitch if playing
+            if (enginePlaying) {
+                audioManager.playEngineSound(speed, maxSpeed);
+            }
+        });
+        
+        // Log to show the page loaded
+        console.log('Audio test page loaded. Click "Initialize Audio" to begin.');
+    </script>
+</body>
+</html>

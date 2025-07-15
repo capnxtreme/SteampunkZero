@@ -22,7 +22,7 @@ wss.on('connection', (ws) => {
     try {
       const message = JSON.parse(data.toString());
       const timestamp = new Date().toLocaleTimeString();
-      
+
       // Format and display the console output
       switch (message.type) {
         case 'log':
@@ -58,10 +58,14 @@ wss.on('connection', (ws) => {
   });
 
   // Send acknowledgment
-  ws.send(JSON.stringify({ type: 'connected', message: 'Debug bridge connected' }));
+  ws.send(
+    JSON.stringify({ type: 'connected', message: 'Debug bridge connected' })
+  );
 });
 
 server.listen(PORT, () => {
   console.log(`🚀 Debug Bridge Server running on ws://localhost:${PORT}`);
-  console.log('📋 Add the debug client to your HTML to start capturing console output');
+  console.log(
+    '📋 Add the debug client to your HTML to start capturing console output'
+  );
 });

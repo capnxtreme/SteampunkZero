@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Actual Rendering</title>
+    <style>
+        body { margin: 20px; background: #000; color: #fff; font-family: monospace; }
+        canvas { border: 2px solid #f00; display: block; margin: 10px; }
+        #status { color: #0f0; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Testing Actual Game Rendering</h1>
+    <div id="status">Loading...</div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <pre id="log"></pre>
+
+    <script type="module">
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        
+        function addLog(msg) {
+            log.textContent += msg + '\n';
+            console.log(msg);
+        }
+        
+        try {
+            // Import the actual game
+            const { SteampunkRacer } = await import('./src/SteampunkRacer.js');
+            addLog('SteampunkRacer imported');
+            
+            // Create game instance
+            const canvas = document.getElementById('gameCanvas');
+            const game = new SteampunkRacer(canvas);
+            addLog('Game instance created');
+            
+            // Check track texture size
+            const trackTexture = game['trackTexture'];
+            const trackCanvas = trackTexture.getCanvas();
+            addLog(`Track texture size: ${trackCanvas.width}x${trackCanvas.height}`);
+            
+            // Start game
+            await game.start();
+            addLog('Game started');
+            
+            // Check renderer settings
+            const renderer = game['mode7Renderer'];
+            const camera = renderer.getCamera();
+            addLog(`Camera height: ${camera.height}`);
+            
+            // Create a visual comparison
+            const compareCanvas = document.createElement('canvas');
+            compareCanvas.width = 400;
+            compareCanvas.height = 400;
+            compareCanvas.style.border = '2px solid #0f0';
+            document.body.appendChild(compareCanvas);
+            
+            const ctx = compareCanvas.getContext('2d');
+            ctx.drawImage(trackCanvas, 0, 0, 400, 400);
+            
+            const h3 = document.createElement('h3');
+            h3.textContent = 'Track Texture (scaled to 400x400):';
+            document.body.insertBefore(h3, compareCanvas);
+            
+            status.textContent = 'Test complete - check if track appears large in game canvas';
+            
+        } catch (err) {
+            status.textContent = 'ERROR: ' + err.message;
+            addLog('Error: ' + err.stack);
+        }
+    </script>
+</body>
+</html>

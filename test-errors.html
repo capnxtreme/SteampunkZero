@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+        }
+        #errorLog {
+            background: #111;
+            padding: 10px;
+            border: 1px solid #0f0;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+        .error { color: #f00; }
+        .warn { color: #ff0; }
+        .info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <h1>SteampunkZero Error Check</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div>
+        <button id="startButton">Start Game</button>
+        <button onclick="location.reload()">Reload</button>
+    </div>
+    <h2>Console Output:</h2>
+    <div id="errorLog"></div>
+    
+    <script type="module">
+        const log = document.getElementById('errorLog');
+        const originalConsole = { ...console };
+        
+        // Override console methods
+        ['log', 'error', 'warn', 'info'].forEach(method => {
+            console[method] = (...args) => {
+                const msg = args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                ).join(' ');
+                
+                const entry = document.createElement('div');
+                entry.className = method === 'error' ? 'error' : 
+                                 method === 'warn' ? 'warn' : 
+                                 method === 'info' ? 'info' : '';
+                entry.textContent = `[${method.toUpperCase()}] ${msg}`;
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+                
+                // Call original console method
+                originalConsole[method](...args);
+            };
+        });
+        
+        // Catch unhandled errors
+        window.addEventListener('error', (e) => {
+            console.error(`Unhandled error: ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`);
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error(`Unhandled promise rejection: ${e.reason}`);
+        });
+        
+        // Load the game
+        import('./src/main.js').catch(err => {
+            console.error('Failed to load main.js:', err);
+        });
+    </script>
+</body>
+</html>
