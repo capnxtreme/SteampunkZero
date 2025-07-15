@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle System Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: #1a1a1a;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vehicle System Demo</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="controls">
+        <p>Use arrow keys to control the vehicle</p>
+        <p>↑ Accelerate | ↓ Brake | ← Turn Left | → Turn Right</p>
+    </div>
+
+    <script type="module">
+        import { createVehicleDemo } from './src/examples/vehicle-demo.ts';
+        
+        // Create and start the demo
+        const demo = createVehicleDemo('gameCanvas');
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (demo) {
+                demo.destroy();
+            }
+        });
+    </script>
+</body>
+</html>

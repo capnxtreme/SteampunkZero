@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteampunkZero - Mode 7 Racing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #b8860b;
+        }
+
+        #gameContainer {
+            text-align: center;
+            padding: 20px;
+        }
+
+        #gameCanvas {
+            border: 3px solid #b8860b;
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.5);
+            cursor: crosshair;
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #loading {
+            color: #b8860b;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        .gear {
+            animation: rotate 2s linear infinite;
+            display: inline-block;
+            font-size: 30px;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #gameInfo {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .controls {
+            background-color: rgba(184, 134, 11, 0.1);
+            border: 1px solid #b8860b;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .controls h3 {
+            margin-top: 0;
+            color: #daa520;
+        }
+
+        .controls p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #b8860b;
+            color: #0a0a0a;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #daa520;
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.5);
+        }
+
+        .title {
+            font-size: 36px;
+            color: #daa520;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <h1 class="title">SteampunkZero</h1>
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="loading">
+            <span class="gear">⚙️</span>
+            Loading Steampunk Racing Engine...
+            <span class="gear">⚙️</span>
+        </div>
+        
+        <div id="gameInfo">
+            <div>
+                <button id="startButton">Start Race</button>
+                <button id="stopButton">Stop</button>
+            </div>
+            
+            <div class="controls">
+                <h3>Controls</h3>
+                <p><strong>↑</strong> Accelerate</p>
+                <p><strong>↓</strong> Brake/Reverse</p>
+                <p><strong>←/→</strong> Steer</p>
+                <p><strong>P</strong> Pause</p>
+                <p><strong>T</strong> Switch Track</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+        console.log('HTML script tag executed');
+    </script>
+</body>
+</html>

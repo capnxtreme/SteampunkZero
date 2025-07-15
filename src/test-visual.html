@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Visualization Test</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #222; color: white; }
+        canvas { border: 1px solid #666; margin: 10px; }
+        .container { display: flex; flex-wrap: wrap; }
+        .panel { margin: 10px; }
+        h3 { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>SteampunkZero Track Visualization</h1>
+    <div class="container">
+        <div class="panel">
+            <h3>Top-Down View (World Coordinates)</h3>
+            <canvas id="worldCanvas" width="400" height="400"></canvas>
+        </div>
+        <div class="panel">
+            <h3>Mode 7 Perspective View</h3>
+            <canvas id="perspectiveCanvas" width="400" height="400"></canvas>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { Track } from '/src/track/Track.js';
+        import { Mode7Renderer } from '/src/rendering/Mode7Renderer.js';
+        
+        // Create canvases
+        const worldCanvas = document.getElementById('worldCanvas');
+        const perspCanvas = document.getElementById('perspectiveCanvas');
+        const worldCtx = worldCanvas.getContext('2d');
+        const perspCtx = perspCanvas.getContext('2d');
+        
+        // Create track
+        const track = Track.createOvalTrack(300, 200, 60);
+        
+        // Draw world view
+        function drawWorldView() {
+            worldCtx.fillStyle = '#111';
+            worldCtx.fillRect(0, 0, 400, 400);
+            
+            // Center and scale
+            worldCtx.save();
+            worldCtx.translate(200, 200);
+            worldCtx.scale(0.5, 0.5);
+            
+            // Draw track segments
+            worldCtx.strokeStyle = '#666';
+            worldCtx.lineWidth = 2;
+            
+            for (let i = 0; i < track.segments.length; i++) {
+                const seg = track.segments[i];
+                
+                // Draw boundaries
+                worldCtx.strokeStyle = '#f00';
+                worldCtx.beginPath();
+                worldCtx.moveTo(seg.leftBoundary.x, seg.leftBoundary.y);
+                worldCtx.lineTo(seg.start.x, seg.start.y);
+                worldCtx.stroke();
+                
+                worldCtx.strokeStyle = '#0f0';
+                worldCtx.beginPath();
+                worldCtx.moveTo(seg.rightBoundary.x, seg.rightBoundary.y);
+                worldCtx.lineTo(seg.start.x, seg.start.y);
+                worldCtx.stroke();
+                
+                // Draw center line
+                worldCtx.strokeStyle = '#ff0';
+                worldCtx.beginPath();
+                worldCtx.moveTo(seg.start.x, seg.start.y);
+                worldCtx.lineTo(seg.end.x, seg.end.y);
+                worldCtx.stroke();
+            }
+            
+            // Draw vehicle position
+            const vehiclePos = { x: -150, y: -300 };
+            worldCtx.fillStyle = '#c9302c';
+            worldCtx.fillRect(vehiclePos.x - 10, vehiclePos.y - 5, 20, 10);
+            
+            worldCtx.restore();
+        }
+        
+        // Draw perspective view
+        function drawPerspectiveView() {
+            const mode7 = new Mode7Renderer(perspCanvas);
+            
+            // Set camera behind vehicle
+            mode7.setCameraPosition(-200, -300);
+            mode7.setCameraAngle(0);
+            mode7.setCameraHeight(80);
+            
+            // Clear and draw horizon
+            perspCtx.clearRect(0, 0, 400, 400);
+            mode7.renderHorizon();
+            
+            // Draw some track points
+            perspCtx.fillStyle = '#ff0';
+            for (let d = 0; d < 200; d += 10) {
+                const pos = track.getPositionOnTrack(d);
+                const screenPos = mode7.worldToScreen(pos);
+                if (screenPos.y > 0 && screenPos.y < 400) {
+                    perspCtx.fillRect(screenPos.x - 2, screenPos.y - 2, 4, 4);
+                }
+            }
+            
+            // Draw vehicle
+            const vehiclePos = { x: -150, y: -300 };
+            const vehicleScreen = mode7.worldToScreen(vehiclePos);
+            perspCtx.fillStyle = '#c9302c';
+            perspCtx.fillRect(vehicleScreen.x - 10, vehicleScreen.y - 5, 20, 10);
+        }
+        
+        drawWorldView();
+        drawPerspectiveView();
+        
+        console.log('Track info:', {
+            segments: track.segments.length,
+            length: track.getLength(),
+            startPos: track.getPositionOnTrack(0)
+        });
+    </script>
+</body>
+</html>

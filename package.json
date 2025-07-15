@@ -1,0 +1,51 @@
+{
+  "name": "steampunkzero",
+  "version": "1.0.0",
+  "description": "A steampunk-themed Mode 7 style racing game",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "debug-server": "tsx debug-server.ts",
+    "dev:debug": "npm run debug-server & npm run dev",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "game",
+    "racing",
+    "steampunk",
+    "mode7",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.10.5",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "@typescript-eslint/parser": "^8.23.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "canvas": "^3.1.2",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "jsdom": "^26.0.0",
+    "prettier": "^3.4.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vitest": "^3.2.4",
+    "ws": "^8.18.3"
+  }
+}

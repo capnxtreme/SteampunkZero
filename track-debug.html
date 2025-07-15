@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Debug</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #222; color: white; font-family: monospace; }
+        canvas { border: 1px solid #666; display: block; margin: 20px 0; }
+        #info { margin: 20px 0; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Track Rendering Debug</h1>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div>
+        <button onclick="moveCamera('up')">Camera Forward (W)</button>
+        <button onclick="moveCamera('down')">Camera Back (S)</button>
+        <button onclick="moveCamera('left')">Camera Left (A)</button>
+        <button onclick="moveCamera('right')">Camera Right (D)</button>
+    </div>
+    <div id="info"></div>
+    
+    <script type="module">
+        import { Mode7Renderer } from '/src/rendering/Mode7Renderer.js';
+        import { Track } from '/src/track/Track.js';
+        import { TrackRenderer } from '/src/track/TrackRenderer.js';
+        
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
+        
+        // Create Mode 7 renderer
+        const mode7 = new Mode7Renderer(canvas);
+        let cameraY = -100;
+        mode7.setCameraPosition(0, cameraY);
+        mode7.setCameraHeight(50);
+        
+        // Create track
+        const track = Track.createStraightTrack(1000, 200);
+        const trackRenderer = new TrackRenderer(mode7);
+        
+        window.moveCamera = function(direction) {
+            const camera = mode7.getCamera();
+            switch(direction) {
+                case 'up': cameraY += 20; break;
+                case 'down': cameraY -= 20; break;
+                case 'left': mode7.setCameraPosition(camera.x - 20, cameraY); break;
+                case 'right': mode7.setCameraPosition(camera.x + 20, cameraY); break;
+            }
+            mode7.setCameraPosition(camera.x, cameraY);
+            render();
+        };
+        
+        function render() {
+            // Clear
+            ctx.clearRect(0, 0, 800, 600);
+            
+            // Render horizon
+            mode7.renderHorizon();
+            
+            // Get camera info
+            const camera = mode7.getCamera();
+            
+            // Render track
+            console.log('Rendering track with camera:', camera);
+            trackRenderer.render(track, 0, {
+                roadColor: '#666666',
+                borderColor: '#ffffff',
+                borderWidth: 10,
+                showCenterLine: true
+            });
+            
+            // Debug: Draw track boundaries manually
+            ctx.save();
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            
+            // Draw some debug lines
+            for (let y = camera.y; y < camera.y + 500; y += 50) {
+                const leftWorld = { x: -100, y: y };
+                const rightWorld = { x: 100, y: y };
+                const leftScreen = mode7.worldToScreen(leftWorld);
+                const rightScreen = mode7.worldToScreen(rightWorld);
+                
+                ctx.beginPath();
+                ctx.arc(leftScreen.x, leftScreen.y, 3, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(rightScreen.x, rightScreen.y, 3, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Label the y coordinate
+                ctx.fillStyle = '#00ff00';
+                ctx.fillText(`y=${y}`, leftScreen.x - 30, leftScreen.y);
+            }
+            ctx.restore();
+            
+            // Update info
+            info.innerHTML = `
+                Camera: (${camera.x.toFixed(1)}, ${camera.y.toFixed(1)})<br>
+                Camera Height: ${camera.height}<br>
+                Track Length: ${track.getLength()}<br>
+                Track Segments: ${track.getSegments().length}<br>
+            `;
+        }
+        
+        // Initial render
+        render();
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'w': moveCamera('up'); break;
+                case 's': moveCamera('down'); break;
+                case 'a': moveCamera('left'); break;
+                case 'd': moveCamera('right'); break;
+            }
+        });
+    </script>
+</body>
+</html>

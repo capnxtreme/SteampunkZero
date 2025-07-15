@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Render</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #222; color: white; font-family: monospace; }
+        canvas { border: 1px solid #666; display: block; margin: 20px 0; }
+        #info { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Debug Mode 7 Rendering</h1>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="info"></div>
+    
+    <script type="module">
+        import { Mode7Renderer } from '/src/rendering/Mode7Renderer.js';
+        import { Track } from '/src/track/Track.js';
+        
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
+        
+        // Create Mode 7 renderer
+        const mode7 = new Mode7Renderer(canvas);
+        mode7.setCameraPosition(0, -100);
+        mode7.setCameraHeight(50);
+        
+        // Create simple track
+        const track = Track.createStraightTrack(1000, 200);
+        
+        function render() {
+            // Clear
+            ctx.clearRect(0, 0, 800, 600);
+            
+            // Render horizon
+            mode7.renderHorizon();
+            
+            // Draw track boundaries manually
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            
+            for (let y = 0; y < 500; y += 20) {
+                const leftWorld = { x: -100, y: y };
+                const rightWorld = { x: 100, y: y };
+                const leftScreen = mode7.worldToScreen(leftWorld);
+                const rightScreen = mode7.worldToScreen(rightWorld);
+                
+                if (leftScreen.y > 0 && leftScreen.y < 600) {
+                    ctx.beginPath();
+                    ctx.moveTo(leftScreen.x, leftScreen.y);
+                    ctx.lineTo(rightScreen.x, rightScreen.y);
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw vehicle position
+            const vehicleWorld = { x: 0, y: 0 };
+            const vehicleScreen = mode7.worldToScreen(vehicleWorld);
+            
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(vehicleScreen.x - 20, vehicleScreen.y - 10, 40, 20);
+            
+            // Update info
+            info.innerHTML = `
+                Camera: (${mode7.getCamera().x.toFixed(1)}, ${mode7.getCamera().y.toFixed(1)})<br>
+                Vehicle World: (0, 0)<br>
+                Vehicle Screen: (${vehicleScreen.x.toFixed(1)}, ${vehicleScreen.y.toFixed(1)})<br>
+                Horizon Y: ${canvas.height * 0.5}
+            `;
+        }
+        
+        // Render once
+        render();
+        
+        // Add camera controls
+        document.addEventListener('keydown', (e) => {
+            const camera = mode7.getCamera();
+            switch(e.key) {
+                case 'w': mode7.setCameraPosition(camera.x, camera.y + 10); break;
+                case 's': mode7.setCameraPosition(camera.x, camera.y - 10); break;
+                case 'a': mode7.setCameraPosition(camera.x - 10, camera.y); break;
+                case 'd': mode7.setCameraPosition(camera.x + 10, camera.y); break;
+                case 'q': mode7.setCameraHeight(camera.height - 5); break;
+                case 'e': mode7.setCameraHeight(camera.height + 5); break;
+            }
+            render();
+        });
+        
+        console.log('Use WASD to move camera, Q/E to adjust height');
+    </script>
+</body>
+</html>
