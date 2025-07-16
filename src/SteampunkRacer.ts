@@ -6,6 +6,9 @@ import { VehicleSpriteGenerator } from './assets/VehicleSpriteGenerator.js';
 import { AssetLoader } from './core/AssetLoader.js';
 import { TrackTexture } from './tracks/TrackTexture.js';
 import { AudioManager } from './audio/AudioManager.js';
+import { SteampunkEnvironment } from './rendering/SteampunkEnvironment.js';
+import { ParticleSystem } from './effects/ParticleSystem.js';
+import { SteampunkHUD } from './ui/SteampunkHUD.js';
 
 export interface GameState {
   isRunning: boolean;
@@ -33,6 +36,9 @@ export class SteampunkRacer {
   private assetLoader: AssetLoader;
   private vehicleImage: HTMLImageElement | undefined;
   private audioManager: AudioManager;
+  private env: SteampunkEnvironment;
+  private particles: ParticleSystem;
+  private hud: SteampunkHUD;
 
   private trackTexture: TrackTexture;
 
@@ -96,6 +102,24 @@ export class SteampunkRacer {
 
     // Initialize audio manager
     this.audioManager = new AudioManager();
+
+    // Initialize new visual systems
+    this.env = new SteampunkEnvironment(this.canvas.width, this.canvas.height, {
+      timeOfDay: 'dusk',
+      weather: 'foggy',
+      industrialLevel: 0.7,
+    });
+    this.particles = new ParticleSystem();
+    // Exhaust emitters for rear-view vehicle (screen space constants for now)
+    this.particles.addEmitter(
+      'exhaustLeft',
+      ParticleSystem.createVehicleExhaust(this.canvas.width / 2 - 20, this.canvas.height - 80)
+    );
+    this.particles.addEmitter(
+      'exhaustRight',
+      ParticleSystem.createVehicleExhaust(this.canvas.width / 2 + 20, this.canvas.height - 80)
+    );
+    this.hud = new SteampunkHUD(this.canvas.width, this.canvas.height);
 
     // Initialize game state
     this.state = {
@@ -416,38 +440,54 @@ export class SteampunkRacer {
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Render with 3D walls
-    this.mode7Renderer.renderHorizon();
+    // Render sky/background via environment with parallax tied to vehicle position
+    const parallaxX = this.vehicle.position.x;
+    this.env.update(1 / 60);
+    this.env.render(this.ctx, parallaxX);
+
+    // Render track using Mode7
     this.mode7Renderer.renderMode7With3D(
       this.trackTexture.getCanvas(),
       this.trackTexture.getHeightMap()
     );
 
-    // Render vehicle
-    // Debug output (only log occasionally to avoid spam)
-    if (Math.random() < 0.01) {
-      console.log('Vehicle state:', {
-        position: this.vehicle.position,
-        rotation: ((this.vehicle.rotation * 180) / Math.PI).toFixed(1) + '°',
-        speed: this.vehicle.speed.toFixed(1),
-        camera: this.mode7Renderer.getCamera(),
-      });
-    }
-
-    // Draw vehicle at fixed position, facing into the screen
+    // Render vehicle sprite (rear view) at screen center bottom
     this.ctx.save();
-    const vehicleX = this.canvas.width / 2;
-    const vehicleY = this.canvas.height - 150;
-
-    // Always use the rear-view sprite since the asset pack only has top-down views
+    const vehicleScreenX = this.canvas.width / 2;
+    const vehicleScreenY = this.canvas.height - 150;
     this.ctx.drawImage(
       this.vehicleSpriteCanvas,
-      vehicleX - this.vehicleSpriteCanvas.width / 2,
-      vehicleY - this.vehicleSpriteCanvas.height / 2
+      vehicleScreenX - this.vehicleSpriteCanvas.width / 2,
+      vehicleScreenY - this.vehicleSpriteCanvas.height / 2
     );
-
     this.ctx.restore();
 
+    // Update exhaust emitter positions to follow vehicle sprite
+    this.particles.updateEmitter('exhaustLeft', {
+      x: vehicleScreenX - 20,
+      y: vehicleScreenY + 20,
+    });
+    this.particles.updateEmitter('exhaustRight', {
+      x: vehicleScreenX + 20,
+      y: vehicleScreenY + 20,
+    });
+    this.particles.update(1 / 60);
+    this.particles.render(this.ctx);
+
+    // HUD update and render
+    this.hud.update({
+      speed: this.vehicle.speed,
+      maxSpeed: this.vehicle.maxSpeed,
+      boost: 0,
+      maxBoost: 100,
+      position: 1,
+      lap: this.state.currentLap,
+      totalLaps: this.state.totalLaps,
+      time: this.state.lapTime,
+    });
+    this.hud.render(this.ctx, this.canvas.width, this.canvas.height);
+
+    // Minimap and debug info remain below (optional)
     // Draw collision indicator
     if (this.state.isHittingWall) {
       this.ctx.save();
@@ -463,10 +503,10 @@ export class SteampunkRacer {
     }
 
     // Render HUD
-    this.renderHUD();
+    // this.renderHUD(); // This line is commented out as per the edit hint
 
     // Always render minimap
-    this.renderMinimap();
+    // this.renderMinimap(); // This line is commented out as per the edit hint
 
     // Render debug info if enabled
     if (this.debugMode) {

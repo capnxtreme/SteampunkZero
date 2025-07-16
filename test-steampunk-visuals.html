@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steampunk Visual Enhancement Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Georgia', serif;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1, h2 {
+      color: #CD7F32;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: #2a2a2a;
+      border: 2px solid #8B6914;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    canvas {
+      display: block;
+      margin: 10px auto;
+      border: 3px solid #B87333;
+      box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    
+    button {
+      padding: 10px 20px;
+      background: linear-gradient(to bottom, #CD7F32, #8B6914);
+      color: #fff;
+      border: 2px solid #654321;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      transition: all 0.3s;
+    }
+    
+    button:hover {
+      background: linear-gradient(to bottom, #FFD700, #CD7F32);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+    
+    select {
+      padding: 8px 15px;
+      background: #3a3a3a;
+      color: #CD7F32;
+      border: 2px solid #8B6914;
+      border-radius: 5px;
+      font-family: 'Georgia', serif;
+    }
+    
+    .info {
+      background: #3a3a3a;
+      padding: 10px;
+      border-left: 4px solid #CD7F32;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚂 Steampunk Visual Enhancement Test Suite</h1>
+    
+    <div class="test-section">
+      <h2>Color Palette Showcase</h2>
+      <canvas id="paletteCanvas" width="1000" height="400"></canvas>
+      <div class="info">
+        Displays all steampunk colors organized by category: Metallic, Victorian, and Atmospheric
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Texture Gallery</h2>
+      <canvas id="textureCanvas" width="1000" height="500"></canvas>
+      <div class="controls">
+        <button onclick="generateTextures()">Regenerate Textures</button>
+      </div>
+      <div class="info">
+        Procedurally generated textures: Cobblestone, Brass, Copper, Rust, Oil Stains, and Gears
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Vehicle Sprites</h2>
+      <canvas id="vehicleCanvas" width="1000" height="300"></canvas>
+      <div class="controls">
+        <button onclick="changeVehicleScale(0.5)">Small</button>
+        <button onclick="changeVehicleScale(1)">Normal</button>
+        <button onclick="changeVehicleScale(2)">Large</button>
+      </div>
+      <div class="info">
+        Enhanced steampunk vehicles with brass, copper, and Victorian details
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Particle Effects</h2>
+      <canvas id="particleCanvas" width="1000" height="400"></canvas>
+      <div class="controls">
+        <button onclick="toggleParticles('steam')">Toggle Steam</button>
+        <button onclick="toggleParticles('smoke')">Toggle Smoke</button>
+        <button onclick="toggleParticles('sparks')">Toggle Sparks</button>
+        <button onclick="toggleParticles('gears')">Toggle Gears</button>
+        <button onclick="clearParticles()">Clear All</button>
+      </div>
+      <div class="info">
+        Dynamic particle systems: Steam exhaust, damage smoke, collision sparks, and gear debris
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Environment & Atmosphere</h2>
+      <canvas id="environmentCanvas" width="1000" height="600"></canvas>
+      <div class="controls">
+        <select id="timeSelect" onchange="changeEnvironment()">
+          <option value="dawn">Dawn</option>
+          <option value="noon">Noon</option>
+          <option value="dusk" selected>Dusk</option>
+          <option value="night">Night</option>
+        </select>
+        <select id="weatherSelect" onchange="changeEnvironment()">
+          <option value="clear">Clear</option>
+          <option value="foggy" selected>Foggy</option>
+          <option value="steamy">Steamy</option>
+        </select>
+        <button onclick="toggleParallax()">Toggle Parallax</button>
+      </div>
+      <div class="info">
+        Industrial skyline with dynamic time of day, weather effects, and parallax scrolling
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>HUD Elements</h2>
+      <canvas id="hudCanvas" width="1000" height="600"></canvas>
+      <div class="controls">
+        <button onclick="animateHUD()">Animate Gauges</button>
+        <button onclick="resetHUD()">Reset</button>
+      </div>
+      <div class="info">
+        Brass speedometer, copper steam pressure gauge, position display, and decorative elements
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>Complete Scene Integration</h2>
+      <canvas id="integratedCanvas" width="1000" height="600"></canvas>
+      <div class="controls">
+        <button onclick="toggleIntegratedAnimation()">Toggle Animation</button>
+        <button onclick="changeIntegratedScene()">Change Scene</button>
+      </div>
+      <div class="info">
+        Full steampunk racing scene with all visual elements integrated
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { STEAMPUNK_PALETTE } from './src/config/steampunkPalette.js';
+    import { TextureGenerator } from './src/assets/TextureGenerator.js';
+    import { VehicleSpriteGenerator } from './src/assets/VehicleSpriteGenerator.js';
+    import { ParticleSystem, ParticleType } from './src/effects/ParticleSystem.js';
+    import { SteampunkEnvironment } from './src/rendering/SteampunkEnvironment.js';
+    import { SteampunkHUD } from './src/ui/SteampunkHUD.js';
+    
+    // Global variables
+    let particleSystem;
+    let environment;
+    let hud;
+    let animationId;
+    let parallaxOffset = 0;
+    let isParallaxEnabled = false;
+    let vehicleScale = 1;
+    let particleEmitters = {
+      steam: false,
+      smoke: false,
+      sparks: false,
+      gears: false
+    };
+    
+    // Initialize everything
+    function init() {
+      showColorPalette();
+      generateTextures();
+      showVehicles();
+      initParticles();
+      initEnvironment();
+      initHUD();
+      initIntegratedScene();
+    }
+    
+    // Color Palette Display
+    function showColorPalette() {
+      const canvas = document.getElementById('paletteCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      let x = 20;
+      let y = 30;
+      const swatchSize = 40;
+      const spacing = 10;
+      
+      // Display each category
+      const categories = [
+        { name: 'Metallic Tones', data: STEAMPUNK_PALETTE.metallic },
+        { name: 'Victorian Colors', data: STEAMPUNK_PALETTE.victorian },
+        { name: 'Atmospheric Effects', data: STEAMPUNK_PALETTE.atmospheric }
+      ];
+      
+      categories.forEach(category => {
+        ctx.fillStyle = '#CD7F32';
+        ctx.font = 'bold 18px Georgia';
+        ctx.fillText(category.name, x, y);
+        y += 30;
+        
+        Object.entries(category.data).forEach(([subcategory, colors]) => {
+          ctx.fillStyle = '#B87333';
+          ctx.font = '14px Georgia';
+          ctx.fillText(subcategory.charAt(0).toUpperCase() + subcategory.slice(1), x, y);
+          y += 20;
+          
+          let rowX = x;
+          colors.forEach((color, index) => {
+            // Color swatch
+            ctx.fillStyle = color.hex;
+            ctx.fillRect(rowX, y, swatchSize, swatchSize);
+            
+            // Border
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(rowX, y, swatchSize, swatchSize);
+            
+            // Label
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px Georgia';
+            ctx.fillText(color.hex, rowX, y + swatchSize + 15);
+            
+            rowX += swatchSize + spacing;
+            
+            if ((index + 1) % 8 === 0) {
+              y += swatchSize + 25;
+              rowX = x;
+            }
+          });
+          
+          y += swatchSize + 35;
+        });
+        
+        y += 20;
+      });
+    }
+    
+    // Texture Gallery
+    function generateTextures() {
+      const canvas = document.getElementById('textureCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      const textureSize = 150;
+      const textures = [
+        { name: 'Cobblestone', generator: () => TextureGenerator.generateCobblestoneTexture(textureSize, textureSize) },
+        { name: 'Brass', generator: () => TextureGenerator.generateBrassTexture(textureSize, textureSize) },
+        { name: 'Copper', generator: () => TextureGenerator.generateCopperTexture(textureSize, textureSize) },
+        { name: 'Rust', generator: () => TextureGenerator.generateRustTexture(textureSize, textureSize) },
+        { name: 'Oil Stains', generator: () => TextureGenerator.generateOilStainTexture(textureSize, textureSize) },
+        { name: 'Gear', generator: () => TextureGenerator.generateGearTexture(100, 12) },
+      ];
+      
+      let x = 50;
+      let y = 50;
+      
+      textures.forEach((texture, index) => {
+        const textureCanvas = texture.generator();
+        
+        // Draw texture
+        ctx.drawImage(textureCanvas, x, y);
+        
+        // Frame
+        ctx.strokeStyle = '#8B6914';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, textureCanvas.width, textureCanvas.height);
+        
+        // Label
+        ctx.fillStyle = '#CD7F32';
+        ctx.font = 'bold 14px Georgia';
+        ctx.textAlign = 'center';
+        ctx.fillText(texture.name, x + textureCanvas.width / 2, y + textureCanvas.height + 20);
+        
+        x += textureCanvas.width + 50;
+        
+        if ((index + 1) % 5 === 0) {
+          x = 50;
+          y += textureSize + 50;
+        }
+      });
+    }
+    
+    // Vehicle Display
+    function showVehicles() {
+      const canvas = document.getElementById('vehicleCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Rear view
+      const rearView = VehicleSpriteGenerator.generateSteamPunkCar(vehicleScale);
+      ctx.drawImage(rearView, 100, 50);
+      
+      ctx.fillStyle = '#CD7F32';
+      ctx.font = 'bold 16px Georgia';
+      ctx.textAlign = 'center';
+      ctx.fillText('Rear View', 100 + rearView.width / 2, 40);
+      
+      // Top-down view
+      const topView = VehicleSpriteGenerator.generateTopDownView(vehicleScale);
+      ctx.drawImage(topView, 300, 50);
+      ctx.fillText('Top View', 300 + topView.width / 2, 40);
+      
+      // Mechanical parts
+      const parts = VehicleSpriteGenerator.generateMechanicalParts(200);
+      ctx.drawImage(parts, 500, 50);
+      ctx.fillText('Mechanical Parts', 600, 40);
+    }
+    
+    // Particle System
+    function initParticles() {
+      particleSystem = new ParticleSystem();
+      
+      const canvas = document.getElementById('particleCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      function animate() {
+        ctx.fillStyle = 'rgba(42, 42, 42, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Update emitters
+        if (particleEmitters.steam) {
+          particleSystem.updateEmitter('steam', { x: 200, y: 300 });
+        }
+        if (particleEmitters.smoke) {
+          particleSystem.updateEmitter('smoke', { x: 400, y: 300 });
+        }
+        if (particleEmitters.sparks && Math.random() < 0.1) {
+          particleSystem.emit(ParticleSystem.createCollisionSparks(600, 300, Math.random() * Math.PI * 2), 10);
+        }
+        if (particleEmitters.gears && Math.random() < 0.05) {
+          particleSystem.emit(ParticleSystem.createGearDebris(800, 200), 3);
+        }
+        
+        particleSystem.update(1/60);
+        particleSystem.render(ctx);
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+    
+    // Environment
+    function initEnvironment() {
+      const canvas = document.getElementById('environmentCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      environment = new SteampunkEnvironment(canvas.width, canvas.height, {
+        timeOfDay: 'dusk',
+        weather: 'foggy',
+        industrialLevel: 0.7
+      });
+      
+      function animate() {
+        if (isParallaxEnabled) {
+          parallaxOffset += 2;
+        }
+        
+        environment.update(1/60);
+        environment.render(ctx, parallaxOffset);
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+    
+    // HUD
+    function initHUD() {
+      const canvas = document.getElementById('hudCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      hud = new SteampunkHUD(canvas.width, canvas.height);
+      
+      function render() {
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        hud.render(ctx, canvas.width, canvas.height);
+      }
+      
+      render();
+    }
+    
+    // Integrated Scene
+    function initIntegratedScene() {
+      const canvas = document.getElementById('integratedCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      const sceneEnv = new SteampunkEnvironment(canvas.width, canvas.height, {
+        timeOfDay: 'dusk',
+        weather: 'steamy',
+        industrialLevel: 0.8
+      });
+      
+      const sceneParticles = new ParticleSystem();
+      const sceneHUD = new SteampunkHUD(canvas.width, canvas.height);
+      
+      // Add continuous emitters
+      sceneParticles.addEmitter('exhaust1', ParticleSystem.createVehicleExhaust(500, 400));
+      sceneParticles.addEmitter('exhaust2', ParticleSystem.createVehicleExhaust(520, 400));
+      
+      let animating = false;
+      let sceneTime = 0;
+      let vehicleX = 500;
+      let speed = 0;
+      
+      function animate() {
+        if (!animating) return;
+        
+        sceneTime += 1/60;
+        speed = 150 + Math.sin(sceneTime * 0.5) * 100;
+        vehicleX = 500 + Math.sin(sceneTime * 0.3) * 50;
+        
+        // Update HUD
+        sceneHUD.update({
+          speed: speed,
+          boost: 50 + Math.sin(sceneTime * 2) * 50,
+          time: sceneTime,
+          position: Math.floor(Math.random() * 8) + 1,
+        });
+        
+        // Update particle positions
+        sceneParticles.updateEmitter('exhaust1', { x: vehicleX - 20, y: 400 });
+        sceneParticles.updateEmitter('exhaust2', { x: vehicleX + 20, y: 400 });
+        
+        // Render everything
+        sceneEnv.update(1/60);
+        sceneEnv.render(ctx, sceneTime * 50);
+        
+        // Draw track (simplified)
+        ctx.fillStyle = STEAMPUNK_PALETTE.gradients.track[1];
+        ctx.fillRect(0, 350, canvas.width, 250);
+        
+        // Draw vehicle
+        const vehicle = VehicleSpriteGenerator.generateTopDownView(1.5);
+        ctx.drawImage(vehicle, vehicleX - vehicle.width/2, 380);
+        
+        // Particles
+        sceneParticles.update(1/60);
+        sceneParticles.render(ctx);
+        
+        // HUD on top
+        sceneHUD.render(ctx, canvas.width, canvas.height);
+        
+        requestAnimationFrame(animate);
+      }
+      
+      window.toggleIntegratedAnimation = function() {
+        animating = !animating;
+        if (animating) animate();
+      };
+      
+      window.changeIntegratedScene = function() {
+        const times = ['dawn', 'noon', 'dusk', 'night'];
+        const weathers = ['clear', 'foggy', 'steamy'];
+        sceneEnv.setTimeOfDay(times[Math.floor(Math.random() * times.length)]);
+        sceneEnv.setWeather(weathers[Math.floor(Math.random() * weathers.length)]);
+      };
+    }
+    
+    // Global functions
+    window.changeVehicleScale = function(scale) {
+      vehicleScale = scale;
+      showVehicles();
+    };
+    
+    window.toggleParticles = function(type) {
+      particleEmitters[type] = !particleEmitters[type];
+      
+      if (type === 'steam') {
+        if (particleEmitters.steam) {
+          particleSystem.addEmitter('steam', ParticleSystem.createVehicleExhaust(200, 300));
+        } else {
+          particleSystem.removeEmitter('steam');
+        }
+      } else if (type === 'smoke') {
+        if (particleEmitters.smoke) {
+          particleSystem.addEmitter('smoke', ParticleSystem.createDamageSmoke(400, 300));
+        } else {
+          particleSystem.removeEmitter('smoke');
+        }
+      }
+    };
+    
+    window.clearParticles = function() {
+      particleSystem.clear();
+      Object.keys(particleEmitters).forEach(key => {
+        particleEmitters[key] = false;
+        particleSystem.removeEmitter(key);
+      });
+    };
+    
+    window.changeEnvironment = function() {
+      const time = document.getElementById('timeSelect').value;
+      const weather = document.getElementById('weatherSelect').value;
+      environment.setTimeOfDay(time);
+      environment.setWeather(weather);
+    };
+    
+    window.toggleParallax = function() {
+      isParallaxEnabled = !isParallaxEnabled;
+    };
+    
+    window.animateHUD = function() {
+      let time = 0;
+      function animate() {
+        time += 1/60;
+        
+        hud.update({
+          speed: 150 + Math.sin(time) * 150,
+          boost: 50 + Math.sin(time * 2) * 50,
+          position: (Math.floor(time) % 8) + 1,
+          lap: (Math.floor(time / 10) % 3) + 1,
+          time: time
+        });
+        
+        const canvas = document.getElementById('hudCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        hud.render(ctx, canvas.width, canvas.height);
+        
+        if (time < 5) {
+          requestAnimationFrame(animate);
+        }
+      }
+      animate();
+    };
+    
+    window.resetHUD = function() {
+      hud.update({
+        speed: 0,
+        boost: 0,
+        position: 1,
+        lap: 1,
+        time: 0
+      });
+      
+      const canvas = document.getElementById('hudCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      hud.render(ctx, canvas.width, canvas.height);
+    };
+    
+    window.generateTextures = generateTextures;
+    
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
