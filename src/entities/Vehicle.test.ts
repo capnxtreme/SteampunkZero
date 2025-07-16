@@ -107,6 +107,18 @@ describe('Vehicle', () => {
       vehicle.steerRight(0.016);
       expect(vehicle.rotation).toBe(initialRotation);
     });
+
+    it('should steer when moving in reverse', () => {
+      vehicle.speed = -50; // Negative speed (reverse)
+      const initialRotation = vehicle.rotation;
+      
+      vehicle.steerLeft(0.016);
+      expect(vehicle.rotation).toBeLessThan(initialRotation);
+      
+      vehicle.rotation = initialRotation;
+      vehicle.steerRight(0.016);
+      expect(vehicle.rotation).toBeGreaterThan(initialRotation);
+    });
   });
 
   describe('bounds', () => {

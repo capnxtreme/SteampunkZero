@@ -71,14 +71,15 @@ export class Vehicle {
 
   steerLeft(deltaTime: number): void {
     // Only allow steering when moving
-    if (this.speed > 10) {
-      this.rotation -= this.turnSpeed * deltaTime * (this.speed / this.maxSpeed);
+    if (Math.abs(this.speed) > 10) {
+      this.rotation -= this.turnSpeed * deltaTime * (Math.abs(this.speed) / this.maxSpeed);
     }
   }
+  
   steerRight(deltaTime: number): void {
     // Only allow steering when moving
-    if (this.speed > 10) {
-      this.rotation += this.turnSpeed * deltaTime * (this.speed / this.maxSpeed);
+    if (Math.abs(this.speed) > 10) {
+      this.rotation += this.turnSpeed * deltaTime * (Math.abs(this.speed) / this.maxSpeed);
     }
   }
 
